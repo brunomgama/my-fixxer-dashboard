@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
 import { toast } from "sonner"
+import { RippleWaveLoader } from "@/components/ripple-wave-loader"
 
 export default function EditSenderPage() {
   const { id } = useParams()
@@ -20,6 +20,7 @@ export default function EditSenderPage() {
   const [active, setActive] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [loading, setLoading] = useState(true)
 
   const router = useRouter()
   const { env } = useEnvironment()
@@ -36,6 +37,8 @@ export default function EditSenderPage() {
       } catch {
         toast.error("Failed to load sender")
         router.back()
+      } finally {
+        setLoading(false)
       }
     }
     fetchSender()
@@ -63,6 +66,8 @@ export default function EditSenderPage() {
       setIsSubmitting(false)
     }
   }
+
+    if (loading) return <RippleWaveLoader />
 
   return (
     <div className="px-6 pt-8">
@@ -150,10 +155,10 @@ export default function EditSenderPage() {
         </div>
 
         {/* Active Toggle */}
-        <div className="flex items-center space-x-3 mt-4">
+        {/* <div className="flex items-center space-x-3 mt-4">
           <Switch id="active" checked={active} onCheckedChange={setActive} />
           <Label htmlFor="active">Active</Label>
-        </div>
+        </div> */}
 
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-2">

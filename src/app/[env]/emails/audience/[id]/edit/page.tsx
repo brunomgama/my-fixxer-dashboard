@@ -18,6 +18,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { RippleWaveLoader } from "@/components/ripple-wave-loader"
+import { CodeBlock, CodeBlockCode, CodeBlockGroup } from "@/components/code-block"
+import { Pencil, PencilOff } from "lucide-react"
 
 interface AudienceType {
   id: string
@@ -27,6 +30,7 @@ interface AudienceType {
 export default function EditAudiencePage() {
   const params = useParams()
   const id = params.id as string
+  const [loading, setLoading] = useState(true)
 
   const [formData, setFormData] = useState<{
     name: string
@@ -45,6 +49,8 @@ export default function EditAudiencePage() {
   const [audienceTypes, setAudienceTypes] = useState<AudienceType[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [editing, setEditing] = useState(false)
+
   const router = useRouter()
   const { env } = useEnvironment()
 
@@ -69,8 +75,11 @@ export default function EditAudiencePage() {
       } catch {
         toast.error("Failed to load audience data")
         router.back()
+      } finally {
+        setLoading(false)
       }
     }
+  
     fetchInitialData()
   }, [api, audienceTypesApi, id, router])
 
@@ -98,7 +107,6 @@ export default function EditAudiencePage() {
         user: "Bruno",
     })
     toast.success("Audience updated")
-    // Ensure toast renders before redirecting
     router.push(`/${env}/emails/audience`)
     router.refresh()
     } catch {
@@ -107,6 +115,8 @@ export default function EditAudiencePage() {
       setIsSubmitting(false)
     }
   }
+
+  if (loading) return <RippleWaveLoader />
 
   return (
     <div className="px-6 pt-8">
@@ -188,17 +198,45 @@ export default function EditAudiencePage() {
         </div>
 
         {/* SQL */}
-        <div>
-          <Label htmlFor="sql" className="mb-2 mt-4">SQL *</Label>
-          <Textarea
-            id="sql"
-            value={formData.sql}
-            onChange={(e) => setFormData((prev) => ({ ...prev, sql: e.target.value }))}
-            className="w-full min-h-[100px]"
-            placeholder="Enter SQL query"
-          />
-          {errors.sql && <p className="text-sm text-destructive">{errors.sql}</p>}
-        </div>
+        <CodeBlock>
+          <CodeBlockGroup className="border-border border-b px-4 py-2">
+            <div className="flex w-full items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="bg-primary/10 text-primary rounded px-2 py-1 text-xs font-medium">
+                  SQL
+                </div>
+              </div>
+              <Button
+                type="button"
+                onClick={() => setEditing((prev) => !prev)}
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                {editing ? <PencilOff className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
+              </Button>
+            </div>
+          </CodeBlockGroup>
+
+
+          {editing ? (
+            <div className="px-4 py-4">
+              <Textarea
+                id="sql"
+                value={formData.sql}
+                onChange={(e) => setFormData((prev) => ({ ...prev, sql: e.target.value }))}
+                className="w-full min-h-[100px]"
+                placeholder="Enter SQL query"
+              />
+              {errors.sql && (
+                <p className="text-sm text-destructive mt-2">{errors.sql}</p>
+              )}
+            </div>
+          ) : (
+            <CodeBlockCode code={formData.sql} language="sql" theme="github-dark" />
+          )}
+        </CodeBlock>
+
 
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-2">

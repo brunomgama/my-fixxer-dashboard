@@ -1,6 +1,8 @@
 import {
-    LayoutDashboard, FileClock, MessagesSquare, Layout, UserCircle,
-    UserSearch, GraduationCap, MessageSquareText, LucideIcon} from "lucide-react";
+    FileClock, Layout, GraduationCap, MessageSquareText, LucideIcon,
+    UsersRound,
+    TicketsPlane,
+    Group} from "lucide-react";
   
   type SidebarLinkItem = {
     label: string;
@@ -19,34 +21,24 @@ import {
     {
       label: "Audience Type",
       href: "/emails/audience-type",
-      icon: LayoutDashboard,
+      icon: Group,
     },
     {
       label: "Audience",
       href: "/emails/audience",
-      icon: FileClock,
+      icon: UsersRound,
     },
     {
       label: "Sender",
       href: "/emails/sender",
-      icon: MessagesSquare,
-      badge: "BETA",
+      icon: TicketsPlane,
     },
     { divider: true },
     {
       label: "Workflows",
       href: "/workflows",
       icon: Layout,
-    },
-    {
-      label: "Accounts",
-      href: "/accounts",
-      icon: UserCircle,
-    },
-    {
-      label: "Competitors",
-      href: "/competitors",
-      icon: UserSearch,
+      badge: "BETA",
     },
     { divider: true },
     {

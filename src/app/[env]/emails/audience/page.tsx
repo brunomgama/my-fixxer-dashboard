@@ -12,6 +12,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { RippleWaveLoader } from "@/components/ripple-wave-loader"
 import { ConfirmDeleteModal } from "@/components/confirm-delete-modal"
+import { ShieldCheck, ShieldX } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 interface Audience {
   id: string
@@ -67,6 +69,25 @@ export default function AudiencePage() {
     }
   }
 
+  const handleDeactivate = async (id: string) => {
+    try {
+      const currentAudience = await api.getOne(id)
+  
+      const updatedAudience = {
+        ...currentAudience,
+        active: !currentAudience.active,
+        user: "Bruno",
+      }
+  
+      await api.update(id, updatedAudience)
+  
+      toast.success("Audience deactivated")
+      fetchAudiences()
+    } catch (err) {
+      toast.error("Failed to deactivate audience")
+    }
+  }
+
   if (loading) return <RippleWaveLoader />
 
   if (error) return <p className="p-4 text-destructive">{error}</p>
@@ -105,22 +126,41 @@ export default function AudiencePage() {
                     <IconUser className="h-4 w-4 text-muted-foreground shrink-0" />
                     {audience.name}
                   </TableCell>
-                  <TableCell>{audience.local}</TableCell>
+                  
+                  <TableCell>
+                    <span>
+                      {audience.local === "FR" ? "🇫🇷 " : audience.local === "NL" ? "🇳🇱 " : "🌍 "}
+                    </span>
+                    {audience.local}
+                  </TableCell>
+
                   <TableCell className="capitalize">{audience.emailType}</TableCell>
-                  <TableCell>{audience.active ? "Active" : "Inactive"}</TableCell>
+                  
+                  <TableCell>
+                    {audience.active ? (
+                      <Badge variant="outline" className="bg-green-100 text-green-700">
+                        <ShieldCheck className="w-3.5 h-3.5 mr-1" />
+                        Active
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-red-100 text-red-700">
+                        <ShieldX className="w-3.5 h-3.5 mr-1" />
+                        Inactive
+                      </Badge>
+                    )}
+                  </TableCell>
+
                   <TableCell className="text-right flex justify-end gap-2">
                     <Link href={`/${env}/emails/audience/${audience.id}/edit`}>
                       <Button variant="outline" size="sm">
                         <IconEdit className="h-4 w-4" />
                       </Button>
                     </Link>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-destructive"
-                      onClick={() => setSelectedId(audience.id)}
-                    >
+                    <Button variant="outline" size="sm" className="text-destructive" onClick={() => setSelectedId(audience.id)}>
                       <IconTrash className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleDeactivate(audience.id)}>
+                      {audience.active ? "Deactivate" : "Activate"}
                     </Button>
                   </TableCell>
                 </TableRow>

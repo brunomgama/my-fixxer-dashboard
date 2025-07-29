@@ -138,10 +138,10 @@ export default function CreateSenderPage() {
         </div>
 
         {/* Active Toggle */}
-        <div className="flex items-center space-x-3 mt-4">
+        {/* <div className="flex items-center space-x-3 mt-4">
           <Switch id="active" checked={active} onCheckedChange={setActive} />
           <Label htmlFor="active">Active</Label>
-        </div>
+        </div> */}
 
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-2">

@@ -11,6 +11,8 @@ import { IconEdit, IconPlus, IconTrash, IconUser } from "@tabler/icons-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ConfirmDeleteModal } from "@/components/confirm-delete-modal"
 import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
+import { ShieldCheck, ShieldX } from "lucide-react"
 
 export default function SenderPage() {
   const { env } = useEnvironment()
@@ -53,6 +55,36 @@ export default function SenderPage() {
       setIsDeleting(false)
     }
   }
+
+  const handleToggleActive = async (sender: Sender) => {
+    try {
+      const updatedSender = {
+        ...sender,
+        active: !sender.active,
+        user: "Bruno",
+      }
+  
+      await api.update(sender.id, updatedSender)
+      toast.success(`Sender ${updatedSender.active ? "activated" : "deactivated"}`)
+      fetchSender()
+    } catch {
+      toast.error("Failed to update sender status")
+    }
+  }
+  
+  const getEmailTypeBadgeStyle = (type: string) => {
+    switch (type) {
+      case "functional":
+        return "bg-purple-100 text-purple-700"
+      case "automation":
+        return "bg-blue-100 text-blue-700"
+      case "campaign":
+        return "bg-yellow-100 text-yellow-800"
+      default:
+        return "bg-gray-100 text-gray-700"
+    }
+  }
+  
 
   if (loading) return <RippleWaveLoader />
   if (error) return <p className="p-4 text-destructive">{error}</p>
@@ -99,11 +131,34 @@ export default function SenderPage() {
                       : <span className="text-muted-foreground italic">None</span>}
                   </TableCell>
                   <TableCell>
-                    {sender.emailType?.length > 0
-                      ? sender.emailType.join(", ")
-                      : <span className="text-muted-foreground italic">None</span>}
+                    {sender.emailType?.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {sender.emailType.map((type: string) => (
+                          <Badge
+                            key={type}
+                            className={getEmailTypeBadgeStyle(type)}
+                          >
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground italic">None</span>
+                    )}
                   </TableCell>
-                  <TableCell>{sender.active ? "Yes" : "No"}</TableCell>
+                  <TableCell>
+                    {sender.active ? (
+                      <Badge variant="outline" className="bg-green-100 text-green-700">
+                        <ShieldCheck className="w-3.5 h-3.5 mr-1" />
+                        Active
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-red-100 text-red-700">
+                        <ShieldX className="w-3.5 h-3.5 mr-1" />
+                        Inactive
+                      </Badge>
+                    )}
+                  </TableCell>  
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Link href={`/${env}/emails/sender/${sender.id}/edit`}>
@@ -111,13 +166,11 @@ export default function SenderPage() {
                           <IconEdit className="h-4 w-4" />
                         </Button>
                       </Link>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-destructive"
-                        onClick={() => setSelectedId(sender.id)}
-                      >
+                      <Button variant="outline" size="sm" className="text-destructive" onClick={() => setSelectedId(sender.id)}>
                         <IconTrash className="h-4 w-4" />
+                      </Button>
+                      <Button  variant="outline"  size="sm"  onClick={() => handleToggleActive(sender)}>
+                        {sender.active ? "Deactivate" : "Activate"}
                       </Button>
                     </div>
                   </TableCell>
