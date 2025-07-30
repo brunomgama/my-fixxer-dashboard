@@ -4,6 +4,9 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Node } from "reactflow"
 import React from "react"
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
+import { Badge } from "./ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 
 type NodeOptionsSidebarProps = {
   selectedNode: Node
@@ -13,9 +16,12 @@ type NodeOptionsSidebarProps = {
   handleUpdateNodeName: (newName: string) => void
   handleUpdateNodeJson: (json: string) => void
   setNodes: React.Dispatch<React.SetStateAction<Node[]>>
+  allNodes: Node[]
+  handleConnectNodes: (sourceLabel: string, targetId: string) => void
 }
 
-export function NodeOptionsSidebar({selectedNode, selectedNodeId, inputNodes, outputNodes, handleUpdateNodeName, handleUpdateNodeJson, setNodes}
+
+export function NodeOptionsSidebar({selectedNode, selectedNodeId, inputNodes, outputNodes, handleUpdateNodeName, handleUpdateNodeJson, setNodes, allNodes, handleConnectNodes}
   : NodeOptionsSidebarProps) {
   return (
     <aside
@@ -49,6 +55,79 @@ export function NodeOptionsSidebar({selectedNode, selectedNodeId, inputNodes, ou
         </div>
       )}
 
+      {selectedNode.data?.nodeType === "wait" && (() => {
+        let waitType: "seconds" | "timestamp" | undefined;
+        let parsed: any = {};
+
+        try {
+          parsed = JSON.parse(selectedNode.data?.inputJson || "{}");
+          if ("seconds" in parsed) waitType = "seconds";
+          if ("timestamp" in parsed) waitType = "timestamp";
+        } catch {
+          waitType = undefined;
+        }
+
+        return (
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className="text-sm font-medium">Wait Type</label>
+              <RadioGroup
+                value={waitType}
+                onValueChange={(value) => {
+                  if (value === "seconds") {
+                    handleUpdateNodeJson(JSON.stringify({ seconds: 0 }));
+                  } else if (value === "timestamp") {
+                    handleUpdateNodeJson(JSON.stringify({ timestamp: "" }));
+                  }
+                }}
+                className="flex gap-4 mt-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem className="bg-white" value="seconds" id="wait-seconds" />
+                  <label htmlFor="wait-seconds" className="text-sm">Seconds</label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem className="bg-white" value="timestamp" id="wait-timestamp" />
+                  <label htmlFor="wait-timestamp" className="text-sm">Timestamp</label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {waitType === "seconds" && (
+              <div>
+                <label className="text-sm font-medium">Wait Time (seconds)</label>
+                <Input
+                  type="number"
+                  className="bg-white mt-1"
+                  value={parsed.seconds ?? ""}
+                  onChange={(e) => {
+                    const seconds = parseInt(e.target.value, 10);
+                    const json = JSON.stringify({ seconds: isNaN(seconds) ? 0 : seconds });
+                    handleUpdateNodeJson(json);
+                  }}
+                />
+              </div>
+            )}
+
+            {waitType === "timestamp" && (
+              <div>
+                <label className="text-sm font-medium">Timestamp (ISO)</label>
+                <Input
+                  type="datetime-local"
+                  className="bg-white mt-1"
+                  value={parsed.timestamp?.slice(0, 16) || ""}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    const iso = new Date(raw).toISOString(); 
+                    handleUpdateNodeJson(JSON.stringify({ timestamp: iso }));
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* Pass Node Fields */}
       {selectedNode.data?.nodeType === "pass" && (
         <>
@@ -81,26 +160,55 @@ export function NodeOptionsSidebar({selectedNode, selectedNodeId, inputNodes, ou
 
       {/* Input Nodes */}
       <div>
-        <p className="text-sm font-medium">Input from:</p>
-        <ul className="text-xs text-gray-600 list-disc pl-4">
-          {inputNodes.length > 0 ? (
-            inputNodes.map((name) => <li key={name}>{name}</li>)
-          ) : (
-            <li>None</li>
-          )}
-        </ul>
+        <p className="text-base font-medium mb-1">Input from:</p>
+          {allNodes?.length > 1 ? (
+          <Select
+            onValueChange={(value) => {
+              if (selectedNodeId) {
+                handleConnectNodes(value, selectedNodeId);
+              }
+            }}
+          >
+            <SelectTrigger className="w-full bg-white">
+              <SelectValue placeholder={inputNodes.join(", ") || "None"} />
+            </SelectTrigger>
+            <SelectContent>
+              {allNodes
+                .filter((n) => n.id !== selectedNodeId)
+                .map((node) => (
+                  <SelectItem key={node.id} value={node.data.label}>
+                    {node.data.label}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>        
+        ) : (
+          <p className="text-sm text-muted-foreground">Start node available</p>
+        )}
       </div>
 
       {/* Output Nodes */}
       <div>
-        <p className="text-sm font-medium">Outputs to:</p>
-        <ul className="text-xs text-gray-600 list-disc pl-4">
-          {outputNodes.length > 0 ? (
-            outputNodes.map((name) => <li key={name}>{name}</li>)
-          ) : (
-            <li>None</li>
-          )}
-        </ul>
+        <p className="text-base font-medium mb-1">Outputs to:</p>
+          <Select
+            onValueChange={(value) => {
+              if (selectedNodeId) {
+                handleConnectNodes(selectedNodeId, value);
+              }
+            }}
+          >
+            <SelectTrigger className="w-full bg-white">
+              <SelectValue placeholder={outputNodes.join(", ") || "None"} />
+            </SelectTrigger>
+            <SelectContent>
+              {allNodes.filter((n) => n.id !== selectedNodeId && n.data?.nodeType !== "start")
+                .map((node) => (
+                  <SelectItem key={node.id} value={node.data.label}>
+                    {node.data.label}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
       </div>
     </aside>
   )

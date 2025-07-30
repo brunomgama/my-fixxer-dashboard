@@ -50,8 +50,11 @@ export class WorkflowApi {
     return this.request(`/events/${id}`)
   }
 
-  // These are placeholders for future CRUD support
-  // async create(data: CreateWorkflowRequest): Promise<Workflow> { ... }
-  // async update(id: string, data: UpdateWorkflowRequest): Promise<Workflow> { ... }
-  // async delete(id: string): Promise<void> { ... }
+  async create(payload: any): Promise<any> {
+    return this.request("/events", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
+  }
+
 }

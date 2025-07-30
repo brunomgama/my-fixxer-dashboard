@@ -1,23 +1,18 @@
 import { Handle, Position } from "reactflow";
-import { Split } from "lucide-react";
+import { ClockFading, Split } from "lucide-react";
 
-// [
-//   { "Variable": "$.test", "BooleanEquals": true, "Next": "Pass" },
-//   { "Variable": "$.test", "BooleanEquals": false, "Next": "Pass" }
-// ]
-
-export function ChoiceNode({ data }: any) {
+export function WaitNode({ data }: any) {
   return (
     <div className="flex items-center border rounded-md bg-white w-48 shadow-sm">
       {/* Icon section */}
       <div className="flex items-center justify-center w-10 border-r">
-        <Split className="h-5 w-5 text-blue-500" />
+        <ClockFading className="h-5 w-5 text-blue-500" />
       </div>
 
       {/* Text section */}
       <div className="flex flex-col flex-1 px-2 py-1">
-        <span className="text-xs text-gray-500">Choice state</span>
-        <span className="text-sm font-semibold">{data.label || "Choice"}</span>
+        <span className="text-xs text-gray-500">Wait state</span>
+        <span className="text-sm font-semibold">{data.label || "Wait"}</span>
       </div>
 
       {/* Handles */}

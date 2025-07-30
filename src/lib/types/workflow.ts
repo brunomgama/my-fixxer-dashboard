@@ -2,6 +2,7 @@ export interface Workflow {
     id: string
     name: string
     arn: string
+    version: string
     active: boolean
     createDate: string
     createUser: string

@@ -1,6 +1,6 @@
 "use client"
 
-import { PlayCircle, Split, SquareStack, Code, CheckCircle2, XCircle } from "lucide-react"
+import { PlayCircle, Split, SquareStack, Code, CheckCircle2, XCircle, ClockFading } from "lucide-react"
 import React from "react"
 
 type SidebarProps = {
@@ -10,8 +10,9 @@ type SidebarProps = {
 export function WorkflowSidebar({ onDragStart }: SidebarProps) {
   const nodes = [
     { label: "Pass", icon: PlayCircle, color: "bg-blue-500", hover: "hover:bg-blue-600" },
+    { label: "Wait", icon: ClockFading, color: "bg-yellow-500", hover: "hover:bg-yellow-600" },
     { label: "Choice", icon: Split, color: "bg-green-500", hover: "hover:bg-green-600" },
-    { label: "Parallel", icon: SquareStack, color: "bg-purple-500", hover: "hover:bg-purple-600" },
+    // { label: "Parallel", icon: SquareStack, color: "bg-purple-500", hover: "hover:bg-purple-600" },
     { label: "Task", icon: Code, color: "bg-orange-500", hover: "hover:bg-orange-600" },
     { label: "Success", icon: CheckCircle2, color: "bg-emerald-500", hover: "hover:bg-emerald-600" },
     { label: "Failure", icon: XCircle, color: "bg-red-500", hover: "hover:bg-red-600" },

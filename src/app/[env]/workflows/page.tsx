@@ -11,6 +11,8 @@ import { IconPlus } from "@tabler/icons-react"
 import Link from "next/link"
 import { Workflow } from "@/lib/types/workflow"
 import { WorkflowApi } from "@/lib/api/workflow"
+import { Badge } from "@/components/ui/badge"
+import { ShieldCheck, ShieldX } from "lucide-react"
 
 export default function WorkflowPage() {
   const { env } = useEnvironment()
@@ -59,9 +61,10 @@ export default function WorkflowPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>ARN</TableHead>
+              {/* <TableHead>ARN</TableHead> */}
+              <TableHead>Version</TableHead>
               <TableHead>Active</TableHead>
-              <TableHead>Created</TableHead>
+              {/* <TableHead>Created</TableHead> */}
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -70,9 +73,22 @@ export default function WorkflowPage() {
               workflows.map((workflow) => (
                 <TableRow key={workflow.id}>
                   <TableCell>{workflow.name}</TableCell>
-                  <TableCell className="max-w-[200px] truncate">{workflow.arn}</TableCell>
-                  <TableCell>{workflow.active ? "Yes" : "No"}</TableCell>
-                  <TableCell>{new Date(workflow.createDate).toLocaleString()}</TableCell>
+                  {/* <TableCell className="max-w-[200px] truncate">{workflow.arn}</TableCell> */}
+                  <TableCell>{workflow.version}</TableCell>
+                  <TableCell>
+                    {workflow.active ? (
+                      <Badge variant="outline" className="bg-green-100 text-green-700">
+                        <ShieldCheck className="w-3.5 h-3.5 mr-1" />
+                        Active
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-red-100 text-red-700">
+                        <ShieldX className="w-3.5 h-3.5 mr-1" />
+                        Inactive
+                      </Badge>
+                    )}
+                  </TableCell>
+                  {/* <TableCell>{new Date(workflow.createDate).toLocaleString()}</TableCell> */}
                   <TableCell className="text-right">
                     <Button size="sm" variant="outline">
                       View

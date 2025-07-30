@@ -1,6 +1,15 @@
 import { Handle, Position } from "reactflow";
 import { Code } from "lucide-react";
 
+// {
+//   "resource": "arn:aws:states:::states:startExecution.sync:2",
+//   "StateMachineArn": "arn:aws:iam::323069970350:role/launcher-test-workflow-role-staging-asr",
+//   "Input": {
+//     "StatePayload": "Hello from Step Functions!",
+//     "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id"
+//   }
+// }
+
 export function TaskNode({ data }: any) {
   return (
     <div className="flex items-center border rounded-md bg-white w-48 shadow-sm">
