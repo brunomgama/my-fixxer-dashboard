@@ -187,29 +187,38 @@ export function NodeOptionsSidebar({selectedNode, selectedNodeId, inputNodes, ou
         )}
       </div>
 
-      {/* Output Nodes */}
-      <div>
-        <p className="text-base font-medium mb-1">Outputs to:</p>
-          <Select
-            onValueChange={(value) => {
-              if (selectedNodeId) {
-                handleConnectNodes(selectedNodeId, value);
-              }
-            }}
-          >
-            <SelectTrigger className="w-full bg-white">
-              <SelectValue placeholder={outputNodes.join(", ") || "None"} />
-            </SelectTrigger>
-            <SelectContent>
-              {allNodes.filter((n) => n.id !== selectedNodeId && n.data?.nodeType !== "start")
-                .map((node) => (
-                  <SelectItem key={node.id} value={node.data.label}>
-                    {node.data.label}
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
-      </div>
+      {selectedNode.data?.nodeType !== "success" && selectedNode.data?.nodeType !== "failure" && (
+        <>
+          {/* Output Nodes */}
+          <div>
+            <p className="text-base font-medium mb-1">Outputs to:</p>
+            <Select
+              onValueChange={(value) => {
+                if (selectedNodeId) {
+                  handleConnectNodes(selectedNodeId, value);
+                }
+              }}
+            >
+              <SelectTrigger className="w-full bg-white">
+                <SelectValue placeholder={outputNodes.join(", ") || "None"} />
+              </SelectTrigger>
+              <SelectContent>
+                {allNodes
+                  .filter(
+                    (n) =>
+                      n.id !== selectedNodeId &&
+                      n.data?.nodeType !== "start"
+                  )
+                  .map((node) => (
+                    <SelectItem key={node.id} value={node.data.label}>
+                      {node.data.label}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </>
+      )}
     </aside>
   )
 }
