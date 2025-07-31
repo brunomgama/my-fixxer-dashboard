@@ -1,8 +1,7 @@
 "use client"
 
-import { useEffect, useState, useCallback, useMemo } from "react"
+import { useEffect, useState, useCallback, useMemo, useRef } from "react"
 import Link from "next/link"
-import { toast } from "sonner"
 import { IconPlus, IconUser, IconEdit, IconTrash } from "@tabler/icons-react"
 
 import { useEnvironment } from "@/lib/context/environment"
@@ -11,15 +10,15 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ConfirmDeleteModal } from "@/components/confirm-delete-modal"
 import { RippleWaveLoader } from "@/components/ripple-wave-loader"
-
-interface AudienceType {
-  id: string
-  name: string
-}
+import { useToast } from "@/hooks/useToast"
+import { AudienceType } from "@/lib/types/audience-types"
+import Toaster from "@/components/toast"
 
 export default function AudienceTypesPage() {
   const { env } = useEnvironment()
   const api = useMemo(() => new AudienceTypesApi(env), [env]);
+
+  const { toasterRef, showToast } = useToast();
 
   const [data, setData] = useState<AudienceType[]>([])
   const [loading, setLoading] = useState(true)
@@ -34,10 +33,11 @@ export default function AudienceTypesPage() {
       setData(result.results);
     } catch {
       setError("Failed to fetch audience types");
+      showToast("Error", "Failed to fetch audience types", "error");
     } finally {
       setLoading(false);
     }
-  }, [api]);  
+  }, [api, showToast]);
 
   useEffect(() => {
     fetchAudienceTypes();
@@ -47,12 +47,14 @@ export default function AudienceTypesPage() {
     if (!selectedId) return
 
     setIsDeleting(true)
+    const audienceToDelete = data.find(type => type.id === selectedId);
+
     try {
       await api.delete(selectedId)
-      toast.success("Audience type deleted")
-      fetchAudienceTypes()
+      showToast("Success", "Audience type " + audienceToDelete?.name + " has been deleted", "success");
+      fetchAudienceTypes();
     } catch {
-      toast.error("Failed to delete audience type")
+      showToast( "Error", "Failed to delete audience type " + audienceToDelete?.name, "error");
     } finally {
       setSelectedId(null)
       setIsDeleting(false)
@@ -64,6 +66,7 @@ export default function AudienceTypesPage() {
 
   return (
     <div className="space-y-6 mr-4">
+      <Toaster ref={toasterRef} />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Audience Types</h1>
@@ -101,12 +104,7 @@ export default function AudienceTypesPage() {
                         <IconEdit className="h-4 w-4" />
                       </Button>
                     </Link>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-destructive"
-                      onClick={() => setSelectedId(type.id)}
-                    >
+                    <Button variant="outline" size="sm" className="text-destructive" onClick={() => setSelectedId(type.id)}>
                       <IconTrash className="h-4 w-4" />
                     </Button>
                   </TableCell>

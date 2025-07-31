@@ -8,11 +8,17 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
 import { RippleWaveLoader } from "@/components/ripple-wave-loader"
+import { useToast } from "@/hooks/useToast"
+import Toaster from "@/components/toast"
 
 export default function EditSenderPage() {
   const { id } = useParams()
+  const { env } = useEnvironment()
+  const router = useRouter()
+  const api = useMemo(() => new SenderApi(env), [env])
+  const { toasterRef, showToast } = useToast()
+
   const [email, setEmail] = useState("")
   const [alias, setAlias] = useState<string[]>([])
   const [newAlias, setNewAlias] = useState("")
@@ -21,10 +27,6 @@ export default function EditSenderPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
-
-  const router = useRouter()
-  const { env } = useEnvironment()
-  const api = useMemo(() => new SenderApi(env), [env])
 
   useEffect(() => {
     const fetchSender = async () => {
@@ -35,7 +37,7 @@ export default function EditSenderPage() {
         setEmailType(sender.emailType)
         setActive(sender.active)
       } catch {
-        toast.error("Failed to load sender")
+        showToast("Error", "Failed to load sender", "error")
         router.back()
       } finally {
         setLoading(false)
@@ -46,9 +48,21 @@ export default function EditSenderPage() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
+
     if (!email.trim()) newErrors.email = "Email is required"
+    if (alias.length === 0) newErrors.alias = "At least one alias is required"
+    if (emailType.length === 0) newErrors.emailType = "At least one email type is required"
+
     setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+
+    if (Object.keys(newErrors).length > 0) {
+      const firstField = Object.keys(newErrors)[0]
+      const firstMessage = newErrors[firstField]
+      showToast("Validation Error", firstMessage, "error")
+      return false
+    }
+
+    return true
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,23 +71,25 @@ export default function EditSenderPage() {
 
     setIsSubmitting(true)
     try {
-      await api.update(id as string, { email, alias, emailType, active, user: "Bruno" })
-      toast.success("Sender updated")
+      await api.update(id as string, { email, alias, emailType, active, user: "system" })
+      showToast("Success", "Sender updated successfully", "success")
       router.push(`/${env}/emails/sender`)
     } catch {
-      toast.error("Failed to update sender")
+      showToast("Error", "Failed to update sender", "error")
     } finally {
       setIsSubmitting(false)
     }
   }
 
-    if (loading) return <RippleWaveLoader />
+  if (loading) return <RippleWaveLoader />
 
   return (
     <div className="px-6 pt-8">
+      <Toaster ref={toasterRef} />
       <h1 className="text-2xl font-semibold">Edit Sender</h1>
       <p className="text-muted-foreground">Update existing sender</p>
       <form onSubmit={handleSubmit} className="space-y-6">
+
         {/* Email */}
         <div>
           <Label htmlFor="email" className="mb-2 mt-4">Email *</Label>
@@ -81,40 +97,56 @@ export default function EditSenderPage() {
             id="email"
             className="w-full"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value)
+              if (errors.email) setErrors(prev => ({ ...prev, email: "" }))
+            }}
             placeholder="sender@email.com"
           />
-          {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
         </div>
 
-        {/* Alias List */}
+        {/* Alias */}
         <div>
-          <Label className="mb-2 mt-4">Alias</Label>
+          <Label className={`mb-2 mt-4 ${errors.alias ? 'text-destructive' : ''}`}>
+            Alias *
+          </Label>
           <div className="flex gap-2">
             <Input
+              className={`w-full ${errors.alias ? 'border-destructive' : ''}`}
               placeholder="Add alias"
               value={newAlias}
               onChange={(e) => setNewAlias(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && newAlias.trim()) {
                   e.preventDefault()
-                  setAlias((prev) => [...prev, newAlias.trim()])
+                  setAlias((prev) => {
+                    const updated = [...prev, newAlias.trim()]
+                    if (updated.length > 0 && errors.alias) {
+                      setErrors((prev) => ({ ...prev, alias: "" }))
+                    }
+                    return updated
+                  })
                   setNewAlias("")
                 }
               }}
             />
-            <Button
-              type="button"
+            <Button type="button"
               onClick={() => {
                 if (newAlias.trim()) {
-                  setAlias((prev) => [...prev, newAlias.trim()])
+                  setAlias((prev) => {
+                    const updated = [...prev, newAlias.trim()]
+                    if (updated.length > 0 && errors.alias) {
+                      setErrors((prev) => ({ ...prev, alias: "" }))
+                    }
+                    return updated
+                  })
                   setNewAlias("")
                 }
-              }}
-            >
+              }}>
               Add
             </Button>
           </div>
+
           {alias.length > 0 && (
             <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
               {alias.map((a, idx) => (
@@ -123,7 +155,15 @@ export default function EditSenderPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setAlias((prev) => prev.filter((_, i) => i !== idx))}
+                    onClick={() => {
+                      setAlias((prev) => {
+                        const updated = prev.filter((_, i) => i !== idx)
+                        if (updated.length === 0) {
+                          setErrors((prev) => ({ ...prev, alias: "At least one alias is required" }))
+                        }
+                        return updated
+                      })
+                    }}
                   >
                     Remove
                   </Button>
@@ -133,9 +173,11 @@ export default function EditSenderPage() {
           )}
         </div>
 
-        {/* Email Type Buttons */}
+        {/* Email Type */}
         <div>
-          <Label className="mb-2 mt-4">Email Type *</Label>
+          <Label className={`mb-2 mt-4 ${errors.emailType ? "text-destructive" : ""}`}>
+            Email Type *
+          </Label>
           <div className="flex flex-wrap gap-2">
             {["campaign", "automation", "functional"].map((type) => (
               <Button
@@ -143,9 +185,15 @@ export default function EditSenderPage() {
                 type="button"
                 variant={emailType.includes(type) ? "default" : "outline"}
                 onClick={() => {
-                  setEmailType((prev) =>
-                    prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
-                  )
+                  setEmailType((prev) => {
+                    const updated = prev.includes(type)
+                      ? prev.filter((t) => t !== type)
+                      : [...prev, type]
+                    if (updated.length > 0 && errors.emailType) {
+                      setErrors((prev) => ({ ...prev, emailType: "" }))
+                    }
+                    return updated
+                  })
                 }}
               >
                 {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -153,12 +201,6 @@ export default function EditSenderPage() {
             ))}
           </div>
         </div>
-
-        {/* Active Toggle */}
-        {/* <div className="flex items-center space-x-3 mt-4">
-          <Switch id="active" checked={active} onCheckedChange={setActive} />
-          <Label htmlFor="active">Active</Label>
-        </div> */}
 
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-2">

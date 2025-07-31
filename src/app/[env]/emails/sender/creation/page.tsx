@@ -5,45 +5,50 @@ import { useRouter } from "next/navigation"
 import { SenderApi } from "@/lib/api/sender"
 import { useEnvironment } from "@/lib/context/environment"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { toast } from "sonner"
+import Toaster from "@/components/toast"
+import { useToast } from "@/hooks/useToast"
 
 export default function CreateSenderPage() {
+  const { env } = useEnvironment()
+  const router = useRouter()
+  const api = useMemo(() => new SenderApi(env), [env])
+  const { toasterRef, showToast } = useToast();
+
   const [email, setEmail] = useState("")
   const [alias, setAlias] = useState<string[]>([])
   const [newAlias, setNewAlias] = useState("")
   const [emailType, setEmailType] = useState<string[]>([])
-  const [newEmailType, setNewEmailType] = useState("")
   const [active, setActive] = useState(true)
+
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const router = useRouter()
-  const { env } = useEnvironment()
-  const api = useMemo(() => new SenderApi(env), [env])
-
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
+  
     if (!email.trim()) newErrors.email = "Email is required"
+    if (alias.length === 0) newErrors.alias = "At least one alias is required"
+    if (emailType.length === 0) newErrors.emailType = "At least one email type is required"
+  
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
     if (!validateForm()) return
 
     setIsSubmitting(true)
     try {
       await api.create({ email, alias, emailType, active, user: "Bruno" })
-      toast.success("Sender created")
+      showToast("Success", "Sender created successfully", "success")
       router.push(`/${env}/emails/sender`)
     } catch (err) {
+      showToast("Error", "Failed to create sender", "error")
       console.error("Failed to create sender:", err)
-      toast.error("Failed to create sender")
     } finally {
       setIsSubmitting(false)
     }
@@ -51,28 +56,32 @@ export default function CreateSenderPage() {
 
   return (
     <div className="px-6 pt-8">
+      <Toaster ref={toasterRef} />
       <h1 className="text-2xl font-semibold">Create Sender</h1>
       <p className="text-muted-foreground">Add a new sender</p>
       <form onSubmit={handleSubmit} className="space-y-6">
 
         {/* Email */}
-        <div>
-          <Label htmlFor="email" className="mb-2 mt-4">Email *</Label>
-          <Textarea
-            id="email"
-            className="w-full"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="sender@email.com"
+        <div className="w-full">
+          <Label htmlFor="email" className={`mb-2 mt-4 ${errors.email ? 'text-destructive' : ''}`}>
+            Email *
+          </Label>
+          <Input id="email"
+            className={`w-full ${errors.email ? 'border-destructive' : ''}`} value={email} placeholder="sender@email.com"
+            onChange={(e) => {
+              setEmail(e.target.value)
+              if (errors.email) setErrors((prev) => ({ ...prev, email: "" }))
+            }}
           />
-          {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
         </div>
 
         {/* Alias List */}
         <div>
-          <Label className="mb-2 mt-4">Alias</Label>
+          <Label className={`mb-2 mt-4 ${errors.alias ? 'text-destructive' : ''}`}>
+            Alias
+          </Label>
           <div className="flex gap-2">
-            <Input
+            <Input className={`w-full ${errors.alias ? 'border-destructive' : ''}`}
               placeholder="Add alias"
               value={newAlias}
               onChange={(e) => setNewAlias(e.target.value)}
@@ -82,10 +91,9 @@ export default function CreateSenderPage() {
                   setAlias((prev) => [...prev, newAlias.trim()])
                   setNewAlias("")
                 }
-              }}
+}}
             />
-            <Button
-              type="button"
+            <Button type="button"
               onClick={() => {
                 if (newAlias.trim()) {
                   setAlias((prev) => [...prev, newAlias.trim()])
@@ -101,11 +109,7 @@ export default function CreateSenderPage() {
               {alias.map((a, idx) => (
                 <li key={idx} className="flex justify-between items-center border px-2 py-1 rounded">
                   {a}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setAlias((prev) => prev.filter((_, i) => i !== idx))}
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => setAlias((prev) => prev.filter((_, i) => i !== idx))}>
                     Remove
                   </Button>
                 </li>
@@ -116,32 +120,25 @@ export default function CreateSenderPage() {
 
         {/* Email Type List */}
         <div>
-        <Label className="mb-2 mt-4">Email Type *</Label>
-            <div className="flex flex-wrap gap-2">
-                {["campaign", "automation", "functional"].map((type) => (
-                <Button
-                    key={type}
-                    type="button"
-                    variant={emailType.includes(type) ? "default" : "outline"}
-                    onClick={() => {
-                    setEmailType((prev) =>
-                        prev.includes(type)
-                        ? prev.filter((t) => t !== type)
-                        : [...prev, type]
-                    )
-                    }}
-                >
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                </Button>
-                ))}
-            </div>
+          <Label className={`mb-2 mt-4 ${errors.emailType ? 'text-destructive' : ''}`}>
+            Email Type *
+          </Label>
+          <div className="flex flex-wrap gap-2">
+            {["campaign", "automation", "functional"].map((type) => (
+              <Button key={type} type="button" variant={emailType.includes(type) ? "default" : "outline"}
+                onClick={() => {
+                  setEmailType((prev) =>
+                    prev.includes(type)
+                      ? prev.filter((t) => t !== type)
+                      : [...prev, type]
+                  )
+                  if (errors.emailType) setErrors((prev) => ({ ...prev, emailType: "" }))
+                }} >
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+              </Button>
+            ))}
+          </div>
         </div>
-
-        {/* Active Toggle */}
-        {/* <div className="flex items-center space-x-3 mt-4">
-          <Switch id="active" checked={active} onCheckedChange={setActive} />
-          <Label htmlFor="active">Active</Label>
-        </div> */}
 
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-2">

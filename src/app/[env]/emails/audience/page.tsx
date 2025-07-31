@@ -2,34 +2,25 @@
 
 import Link from "next/link"
 import { useEffect, useState, useCallback, useMemo } from "react"
-import { toast } from "sonner"
 import { IconPlus, IconUser, IconEdit, IconTrash } from "@tabler/icons-react"
 
 import { useEnvironment } from "@/lib/context/environment"
 import { AudienceApi } from "@/lib/api/audience"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { RippleWaveLoader } from "@/components/ripple-wave-loader"
 import { ConfirmDeleteModal } from "@/components/confirm-delete-modal"
 import { ShieldCheck, ShieldX } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-
-interface Audience {
-  id: string
-  name: string
-  local: string
-  definition?: string
-  audienceTypeId: string
-  emailType: string
-  sql: string
-  countRecipients: number
-  active: boolean
-}
+import { Audience } from "@/lib/types/audience"
+import { useToast } from "@/hooks/useToast"
+import Toaster from "@/components/toast"
 
 export default function AudiencePage() {
   const { env } = useEnvironment()
-  const api = useMemo(() => new AudienceApi(env), [env]);
+  const api = useMemo(() => new AudienceApi(env), [env])
+
+  const { toasterRef, showToast } = useToast();
 
   const [data, setData] = useState<Audience[]>([])
   const [loading, setLoading] = useState(true)
@@ -40,7 +31,7 @@ export default function AudiencePage() {
 
   const fetchAudiences = useCallback(async () => {
     try {
-      const result = await api.list({ limit: 50 });
+      const result = await api.list({ limit: 50 })
       setData(result.results)
     } catch {
       setError("Failed to fetch audiences")
@@ -59,10 +50,10 @@ export default function AudiencePage() {
     setIsDeleting(true)
     try {
       await api.delete(selectedId)
-      toast.success("Audience type deleted")
+      showToast("Success", "Audience type deleted", "success")
       fetchAudiences()
     } catch {
-      toast.error("Failed to delete audience type")
+      showToast("Error", "Failed to delete audience type", "error")
     } finally {
       setSelectedId(null)
       setIsDeleting(false)
@@ -72,28 +63,28 @@ export default function AudiencePage() {
   const handleDeactivate = async (id: string) => {
     try {
       const currentAudience = await api.getOne(id)
-  
+
       const updatedAudience = {
         ...currentAudience,
         active: !currentAudience.active,
-        user: "Bruno",
+        user: "system",
       }
-  
+
       await api.update(id, updatedAudience)
-  
-      toast.success("Audience deactivated")
+
+      showToast("Success", "Audience deactivated", "success")
       fetchAudiences()
     } catch (err) {
-      toast.error("Failed to deactivate audience")
+      showToast("Error", "Failed to deactivate audience", "error")
     }
   }
 
   if (loading) return <RippleWaveLoader />
-
   if (error) return <p className="p-4 text-destructive">{error}</p>
 
   return (
     <div className="space-y-6 mr-4">
+      <Toaster ref={toasterRef} />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Audiences</h1>
@@ -126,7 +117,7 @@ export default function AudiencePage() {
                     <IconUser className="h-4 w-4 text-muted-foreground shrink-0" />
                     {audience.name}
                   </TableCell>
-                  
+
                   <TableCell>
                     <span>
                       {audience.local === "FR" ? "🇫🇷 " : audience.local === "NL" ? "🇳🇱 " : "🌍 "}
@@ -135,7 +126,7 @@ export default function AudiencePage() {
                   </TableCell>
 
                   <TableCell className="capitalize">{audience.emailType}</TableCell>
-                  
+
                   <TableCell>
                     {audience.active ? (
                       <Badge variant="outline" className="bg-green-100 text-green-700">

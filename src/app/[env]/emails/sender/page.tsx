@@ -5,7 +5,7 @@ import { SenderApi } from "@/lib/api/sender"
 import { useEnvironment } from "@/lib/context/environment"
 import { Button } from "@/components/ui/button"
 import { Sender } from "@/lib/types/sender"
-import { toast } from "sonner"
+
 import { RippleWaveLoader } from "@/components/ripple-wave-loader"
 import { IconEdit, IconPlus, IconTrash, IconUser } from "@tabler/icons-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -13,10 +13,13 @@ import { ConfirmDeleteModal } from "@/components/confirm-delete-modal"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { ShieldCheck, ShieldX } from "lucide-react"
+import { useToast } from "@/hooks/useToast"
+import Toaster from "@/components/toast"
 
 export default function SenderPage() {
   const { env } = useEnvironment()
   const api = useMemo(() => new SenderApi(env), [env])
+  const { toasterRef, showToast } = useToast();
 
   const [data, setData] = useState<Sender[]>([])
   const [loading, setLoading] = useState(true)
@@ -30,6 +33,7 @@ export default function SenderPage() {
       const result = await api.list({ limit: 50 })
       setData(result.results)
     } catch {
+      showToast("Error", "Failed to fetch senders", "error");
       setError("Failed to fetch senders")
     } finally {
       setLoading(false)
@@ -46,10 +50,10 @@ export default function SenderPage() {
     setIsDeleting(true)
     try {
       await api.delete(selectedId)
-      toast.success("Sender deleted")
+      showToast("Success", "Sender deleted", "success");
       fetchSender()
     } catch {
-      toast.error("Failed to delete sender")
+      showToast("Error", "Failed to delete sender", "error");
     } finally {
       setSelectedId(null)
       setIsDeleting(false)
@@ -58,17 +62,13 @@ export default function SenderPage() {
 
   const handleToggleActive = async (sender: Sender) => {
     try {
-      const updatedSender = {
-        ...sender,
-        active: !sender.active,
-        user: "Bruno",
-      }
+      const updatedSender = { ...sender, active: !sender.active, user: "system" }
   
       await api.update(sender.id, updatedSender)
-      toast.success(`Sender ${updatedSender.active ? "activated" : "deactivated"}`)
+      showToast("Success", `Sender ${updatedSender.active ? "activated" : "deactivated"}`, "success");
       fetchSender()
     } catch {
-      toast.error("Failed to update sender status")
+      showToast("Error", "Failed to update sender status", "error");
     }
   }
   
@@ -91,6 +91,7 @@ export default function SenderPage() {
 
   return (
     <div className="space-y-6 mr-4">
+      <Toaster ref={toasterRef} />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Senders</h1>

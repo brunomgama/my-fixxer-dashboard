@@ -1,38 +1,44 @@
 "use client"
 
-import * as React from "react"
+import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AudienceTypesApi } from "@/lib/api/audience-types"
 import { useEnvironment } from "@/lib/context/environment"
+import Toaster from "@/components/toast"
+import { RippleWaveLoader } from "@/components/ripple-wave-loader"
+import { useToast } from "@/hooks/useToast"
 
 export default function EditAudienceTypePage() {
   const { id } = useParams()
-  const router = useRouter()
   const { env } = useEnvironment()
+  const router = useRouter()
   const api = new AudienceTypesApi(env)
+  const { toasterRef, showToast } = useToast();
 
-  const [formData, setFormData] = React.useState({ name: "" })
-  const [errors, setErrors] = React.useState<{ name?: string }>({})
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
-  const [isLoading, setIsLoading] = React.useState(true)
-  const [hasFetched, setHasFetched] = React.useState(false)
+  const [data, setData] = useState<{ name: string }>({ name: "" })
+  const [name, setName] = useState<string>("")
+  
+  const [error, setError] = useState<string>("")
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [hasFetched, setHasFetched] = useState<boolean>(false)
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchAudienceType = async () => {
       try {
-        const data = await api.getOne(id as string)
-        setFormData({ name: data.name })
+        const fetchedData = await api.getOne(id as string)
+        setData({ name: fetchedData.name })
+        setName(fetchedData.name)
         setHasFetched(true)
       } catch (error) {
-        toast.error("Failed to load audience type")
+        showToast("Error", "Failed to load audience type", "error");
         router.back()
       } finally {
-        setIsLoading(false)
+        setLoading(false)
       }
     }
 
@@ -41,64 +47,48 @@ export default function EditAudienceTypePage() {
     }
   }, [id, api, router, hasFetched])
 
-  const validate = () => {
-    const newErrors: typeof errors = {}
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required"
-    }
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!validate()) return
+
+    if (!name.trim()) {
+      setError("Name is required")
+      showToast("Error", "Name is required", "error");
+      return
+    }
 
     setIsSubmitting(true)
+
     try {
-      await api.update(id as string, {
-        name: formData.name.trim(),
-        user: "Bruno",
-      })
-      toast.success("Audience type updated")
+      await api.update(id as string, { name: name.trim(), user: "system" })
+      showToast("Success", `Audience type "${name}" updated successfully`, "success");
       router.back()
     } catch (error) {
-      toast.error("Failed to update audience type")
+      showToast("Error", "Failed to update audience type", "error");
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  if (isLoading) {
-    return <p className="p-6 text-muted-foreground">Loading...</p>
-  }
+  if (loading) return <RippleWaveLoader />
 
   return (
     <div className="px-6 pt-8">
+      <Toaster ref={toasterRef} />
       <h1 className="text-2xl font-semibold">Edit Audience Type</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="w-full">
-          <Label htmlFor="name" className="mb-2 mt-4">Name *</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, name: e.target.value }))
-            }
-            className={errors.name ? "border-destructive" : ""}
-          />
-          {errors.name && (
-            <p className="text-sm text-destructive">{errors.name}</p>
-          )}
+          <Label htmlFor="name" className={`mb-2 mt-4 ${error ? 'text-destructive' : ''}`}>
+            Name *
+          </Label>
+          <Input id="name" className={`w-full ${error ? 'border-destructive' : ''}`} value={name}
+            onChange={(e) => {
+              setName(e.target.value)
+              if (error) setError("")
+            }}/>
         </div>
 
         <div className="flex justify-end gap-3 pt-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-            disabled={isSubmitting}
-          >
+          <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>
