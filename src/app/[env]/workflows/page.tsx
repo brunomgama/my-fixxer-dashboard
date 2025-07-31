@@ -7,37 +7,57 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { toast } from "sonner"
 import { RippleWaveLoader } from "@/components/ripple-wave-loader"
-import { IconPlus } from "@tabler/icons-react"
+import { IconPlus, IconTrash } from "@tabler/icons-react"
 import Link from "next/link"
 import { Workflow } from "@/lib/types/workflow"
 import { WorkflowApi } from "@/lib/api/workflow"
 import { Badge } from "@/components/ui/badge"
 import { ShieldCheck, ShieldX } from "lucide-react"
+import { ConfirmDeleteModal } from "@/components/confirm-delete-modal"
 
 export default function WorkflowPage() {
   const { env } = useEnvironment()
   const router = useRouter()
   const [workflows, setWorkflows] = useState<Workflow[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Use API class instead of hardcoded URL
   const api = useMemo(() => new WorkflowApi(env), [env])
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await api.list({ limit: 50 })
-        setWorkflows(data.results)
-      } catch (err) {
-        console.error(err)
-        toast.error("Failed to fetch workflows")
-      } finally {
-        setLoading(false)
-      }
+  const fetchData = async () => {
+    try {
+      const data = await api.list({ limit: 50 })
+      setWorkflows(data.results)
+    } catch (err) {
+      console.error(err)
+      toast.error("Failed to fetch workflows")
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchData()
-  }, [api])
+  }, [fetchData])
+  
+
+  const handleConfirmDelete = async () => {
+    if (!selectedId) return
+
+    setIsDeleting(true)
+    try {
+      await api.delete(selectedId)
+      toast.success("Audience type deleted")
+      fetchData()
+    } catch {
+      toast.error("Failed to delete audience type")
+    } finally {
+      setSelectedId(null)
+      setIsDeleting(false)
+    }
+  }
 
   if (loading) return <RippleWaveLoader />
 
@@ -89,9 +109,12 @@ export default function WorkflowPage() {
                     )}
                   </TableCell>
                   {/* <TableCell>{new Date(workflow.createDate).toLocaleString()}</TableCell> */}
-                  <TableCell className="text-right">
-                    <Button size="sm" variant="outline">
+                  <TableCell className="text-right flex justify-end gap-2">
+                    <Button size="sm" variant="outline" onClick={() => router.push(`/${env}/workflows/${workflow.id}/edit`)}>
                       View
+                    </Button>
+                    <Button variant="outline" size="sm" className="text-destructive" onClick={() => setSelectedId(workflow.id)}>
+                      <IconTrash className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -106,6 +129,12 @@ export default function WorkflowPage() {
           </TableBody>
         </Table>
       </div>
+      <ConfirmDeleteModal
+              open={!!selectedId}
+              onClose={() => setSelectedId(null)}
+              onConfirm={handleConfirmDelete}
+              loading={isDeleting}
+            />
     </div>
   )
 }

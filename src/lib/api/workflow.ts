@@ -50,6 +50,10 @@ export class WorkflowApi {
     return this.request(`/events/${id}`)
   }
 
+  async getMap(id: string): Promise<Workflow> {
+    return this.request(`/events/map/${id}`)
+  }
+
   async create(payload: any): Promise<any> {
     return this.request("/events", {
       method: "POST",
@@ -57,4 +61,7 @@ export class WorkflowApi {
     })
   }
 
+  async delete(id: string): Promise<void> {
+    await this.request(`/events/${id}`, { method: "DELETE" })
+  }
 }

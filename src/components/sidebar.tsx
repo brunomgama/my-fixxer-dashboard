@@ -81,17 +81,17 @@ export function SessionNavBar() {
                     <Avatar className="rounded size-4">
                       <AvatarFallback>{env[0].toUpperCase()}</AvatarFallback>
                     </Avatar>
-                    <motion.li variants={variants}>
-                    {!isCollapsed && (
-                      <motion.li
-                        variants={variants}
-                        className="flex items-center justify-between w-full"
+                    <motion.div variants={variants}>
+                      {!isCollapsed && (
+                        <motion.div
+                          variants={variants}
+                          className="flex items-center justify-between w-full"
                         >
                           <p className="text-sm font-medium capitalize mr-2">{env}</p>
                           <ChevronsUpDown className="h-4 w-4 text-muted-foreground/50" />
-                        </motion.li>
+                        </motion.div>
                       )}
-                    </motion.li>
+                    </motion.div>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-[calc(100%-1rem)] ml-2">
