@@ -5,7 +5,8 @@ import {
     Group,
     File,
     Home,
-    Mail} from "lucide-react";
+    Mail,
+    Clock} from "lucide-react";
   
   type SidebarLinkItem = {
     label: string;
@@ -51,6 +52,11 @@ import {
       label: "Campaigns",
       href: "/emails/campaign",
       icon: Mail,
+    },
+    {
+      label: "Schedules",
+      href: "/emails/schedule",
+      icon: Clock,
     },
     { divider: true },
     {
