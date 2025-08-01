@@ -57,6 +57,10 @@ export class SenderApi {
     return this.request(`/senders/${id}`)
   }
 
+  async count(): Promise<{count: number}> {
+    return this.request(`/senders/count`)
+  }
+
   async create(data: CreateSenderRequest): Promise<Sender> {
     return this.request(`/senders`, {
       method: "POST",

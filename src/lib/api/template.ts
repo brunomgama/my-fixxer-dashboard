@@ -1,13 +1,13 @@
 import {
-    Audience,
-    AudienceListParams,
-    AudienceListResponse,
-    CreateAudienceRequest,
-    UpdateAudienceRequest
-  } from "@/lib/types/audience"
+    Template,
+    TemplateListParams,
+    TemplateListResponse,
+    CreateTemplateRequest,
+    UpdateTemplateRequest
+  } from "@/lib/types/template"
   import { ENV_CONFIG, EnvKey } from "@/lib/env-config"
   
-  export class AudienceApi {
+  export class TemplateApi {
     private emailUrl: string
     private apiKey: string
   
@@ -46,39 +46,44 @@ import {
       return undefined as T
     }
   
-    async list(params: AudienceListParams): Promise<AudienceListResponse> {
+    async list(params: TemplateListParams): Promise<TemplateListResponse> {
       const query = new URLSearchParams({ limit: params.limit.toString() })
       if (params.lastKey) query.set("lastKey", params.lastKey)
       if (params.search) query.set("search", params.search)
-      return this.request(`/audience?${query.toString()}`)
+      return this.request(`/template?${query.toString()}`)
     }
   
-    async getOne(id: string): Promise<Audience> {
-      return this.request(`/audience/${id}`)
+    async getOne(id: string): Promise<Template> {
+      return this.request(`/template/${id}`)
     }
 
     async count(): Promise<{count: number}> {
-      return this.request(`/audience/count`)
+      return this.request(`/template/count`)
     }
   
-    async create(data: CreateAudienceRequest): Promise<Audience> {
-      console.log("Creating audience with data:", data)
+    async create(data: CreateTemplateRequest): Promise<Template> {
+      console.log("Creating template with data:", data)
       
-      return this.request(`/audience`, {
+      return this.request(`/template`, {
         method: "POST",
         body: JSON.stringify(data),
       })
     }
   
-    async update(id: string, data: UpdateAudienceRequest): Promise<Audience> {
-      return this.request(`/audience/${id}`, {
+    async update(id: string, data: UpdateTemplateRequest): Promise<Template> {
+      return this.request(`/template/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),
       })
     }
   
     async delete(id: string): Promise<void> {
-      await this.request(`/audience/${id}`, { method: "DELETE" })
+      await this.request(`/template/${id}`, { method: "DELETE" })
+    }
+
+    async duplicate(id: string): Promise<Template> {
+      return this.request(`/template/${id}`, {
+        method: "POST",
+      })
     }
   }
-  

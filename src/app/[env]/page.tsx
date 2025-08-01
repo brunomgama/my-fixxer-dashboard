@@ -1,21 +1,34 @@
 'use client';
 
-import { DashboardShell } from '@/components/dashboard-shell';
-import { EnvironmentProvider } from '@/lib/context/environment';
-import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
+import { SectionCards } from "@/components/cards/section-cards";
+import { ChartAreaInteractive } from "@/components/chart-area-interactive";
+import { DashboardCardsGrid } from "@/components/dashboard-grid-cards";
 
 export default function Home() {
-  const router = useRouter();
 
   return (
-    <EnvironmentProvider>
-      <DashboardShell>
-        <div className="flex flex-col items-start gap-4">
-          <Button onClick={() => router.push('/dev/emails/audience')}>Emails</Button>
-          <Button onClick={() => router.push('/dev/workflows')}>Workflows</Button>
+    <>
+      <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+              <SectionCards />
+              <div className="px-4 lg:px-6">
+                <ChartAreaInteractive />
+              </div>
+              {/* <DataTable data={data} /> */}
+            </div>
+          </div>
         </div>
-      </DashboardShell>
-    </EnvironmentProvider>
+      {/* <DashboardCardsGrid
+        counts={{
+          senders: 10,
+          audienceTypes: 3,
+          audiences: 200,
+          templates: 8,
+          campaigns: 5,
+          schedulers: 2,
+        }}
+      /> */}
+    </>
   );
 }

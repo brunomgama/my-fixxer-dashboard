@@ -2,7 +2,10 @@ import {
     FileClock, Layout, GraduationCap, MessageSquareText, LucideIcon,
     UsersRound,
     TicketsPlane,
-    Group} from "lucide-react";
+    Group,
+    File,
+    Home,
+    Mail} from "lucide-react";
   
   type SidebarLinkItem = {
     label: string;
@@ -19,6 +22,12 @@ import {
   
   export const sidebarLinks: SidebarLink[] = [
     {
+      label: "Home",
+      href: "/",
+      icon: Home,
+    },
+    { divider: true },
+    {
       label: "Audience Type",
       href: "/emails/audience-type",
       icon: Group,
@@ -32,6 +41,16 @@ import {
       label: "Sender",
       href: "/emails/sender",
       icon: TicketsPlane,
+    },
+    {
+      label: "Templates",
+      href: "/emails/template",
+      icon: File,
+    },
+    {
+      label: "Campaigns",
+      href: "/emails/campaign",
+      icon: Mail,
     },
     { divider: true },
     {
