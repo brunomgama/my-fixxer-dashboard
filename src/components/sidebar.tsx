@@ -21,11 +21,20 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronsUpDown, LogOut, UserCircle } from "lucide-react";
 import { useEnvironment } from "@/lib/context/environment";
 import { sidebarLinks } from "@/lib/sidebar-links";
+import { LanguageSwitcher } from "./language-switcher";
+import { useTranslation } from "@/lib/context/translation";
 
 const sidebarVariants = {
   open: { width: "15rem" },
   closed: { width: "3.05rem" },
 };
+
+const environments = [
+  { key: "local", label: "environment.local" },
+  { key: "development", label: "environment.development" },
+  { key: "staging", label: "environment.staging" },
+  { key: "production", label: "environment.production" }
+] as const;
 
 const contentVariants = {
   open: { display: "block", opacity: 1 },
@@ -50,9 +59,11 @@ const staggerVariants = {
 };
 
 export function SessionNavBar() {
+  const {t} = useTranslation()
+  const { env, setEnv } = useEnvironment();
+  
   const [isCollapsed, setIsCollapsed] = useState(true);
   const pathname = usePathname();
-  const { env, setEnv } = useEnvironment();
 
   return (
     <motion.div
@@ -95,9 +106,9 @@ export function SessionNavBar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-[calc(100%-1rem)] ml-2">
-                  {(["local", "development", "staging", "production"] as const).map((e) => (
-                    <DropdownMenuItem key={e} onClick={() => setEnv(e)}>
-                      {e.charAt(0).toUpperCase() + e.slice(1)}
+                  {environments.map((env) => (
+                    <DropdownMenuItem key={env.key} onClick={() => setEnv(env.key)}>
+                      {t(env.label)}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
@@ -108,6 +119,7 @@ export function SessionNavBar() {
             <div className="flex h-full w-full flex-col">
               <ScrollArea className="h-16 grow p-2">
                 <div className="flex w-full flex-col gap-1">
+                    
                 {sidebarLinks.map((item, i) => {
                   if ("divider" in item) {
                     return <Separator key={`sep-${i}`} className="w-full" />;
@@ -130,7 +142,7 @@ export function SessionNavBar() {
                       <motion.li variants={variants}>
                         {!isCollapsed && (
                           <div className="ml-2 flex items-center gap-2">
-                            <p className="text-sm font-medium">{item.label}</p>
+                            <p className="text-sm font-medium">{t(item.label)}</p>
                             {item.badge && (
                               <Badge
                                 variant="outline"
@@ -149,7 +161,10 @@ export function SessionNavBar() {
               </ScrollArea>
 
               {/* FOOTER */}
-              <div className="flex flex-col p-2 mt-auto">
+              <div className="flex flex-col p-2 mt-auto gap-2">
+                <div className="flex items-center">
+                  <LanguageSwitcher />
+                </div>
                 <Link
                   href="/settings/profile"
                   className="flex h-8 w-full flex-row items-center rounded-md px-2 py-1.5 transition hover:bg-muted hover:text-primary"
@@ -161,7 +176,6 @@ export function SessionNavBar() {
                     )}
                   </motion.li>
                 </Link>
-
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger className="w-full">
                     <div className="flex h-8 w-full flex-row items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-muted hover:text-primary">

@@ -7,6 +7,7 @@ import { AudienceApi } from "@/lib/api/audience"
 import { SenderApi } from "@/lib/api/sender"
 import { TemplateApi } from "@/lib/api/template"
 import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -35,6 +36,7 @@ type FormData = {
 export default function EditCampaignPage() {
   const { id } = useParams()
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   const router = useRouter()
 
   const { toasterRef, showToast } = useToast();
@@ -95,7 +97,7 @@ export default function EditCampaignPage() {
         const sender = senderRes.results.find(s => s.id === campaignRes.senderId)
         setSelectedSender(sender || null)
       } catch {
-        showToast("Error", "Failed to load campaign data", "error");
+        showToast(t("common.error"), t("campaigns.failedToLoad"), "error");
         router.back()
       } finally {
         setLoading(false)
@@ -103,7 +105,7 @@ export default function EditCampaignPage() {
     }
   
     fetchInitialData()
-  }, [api, audienceApi, senderApi, templateApi, id, router])
+  }, [api, audienceApi, senderApi, templateApi, id, router, showToast, t])
 
   // Update sender alias options when sender changes
   useEffect(() => {
@@ -119,13 +121,13 @@ export default function EditCampaignPage() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
-    if (!formData.name.trim()) newErrors.name = "Name is required"
-    if (!formData.audienceId.trim()) newErrors.audienceId = "Audience is required"
-    if (!formData.senderId.trim()) newErrors.senderId = "Sender is required"
-    if (!formData.senderAlias.trim()) newErrors.senderAlias = "Sender Alias is required"
-    if (!formData.subject.trim()) newErrors.subject = "Subject is required"
-    if (!formData.content.trim()) newErrors.content = "Content is required"
-    if (!formData.templateId.trim()) newErrors.templateId = "Template is required"
+    if (!formData.name.trim()) newErrors.name = t("validation.nameRequired")
+    if (!formData.audienceId.trim()) newErrors.audienceId = t("campaigns.audienceRequired")
+    if (!formData.senderId.trim()) newErrors.senderId = t("campaigns.senderRequired")
+    if (!formData.senderAlias.trim()) newErrors.senderAlias = t("campaigns.senderAliasRequired")
+    if (!formData.subject.trim()) newErrors.subject = t("campaigns.subjectRequired")
+    if (!formData.content.trim()) newErrors.content = t("campaigns.contentRequired")
+    if (!formData.templateId.trim()) newErrors.templateId = t("campaigns.templateRequired")
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -135,7 +137,7 @@ export default function EditCampaignPage() {
 
     if (!validateForm()) {
       const errorFields = Object.values(errors).join(", ")
-      showToast("Error", `Please fix the following fields: ${errorFields}`, "error");
+      showToast(t("common.error"), t("forms.pleaseFixFields") + ": " + errorFields, "error");
       return
     }
 
@@ -145,11 +147,11 @@ export default function EditCampaignPage() {
         ...formData,
         user: "system",
       })
-      showToast("Success", "Campaign updated", "success");
+      showToast(t("common.success"), t("campaigns.campaignUpdated"), "success");
       router.push(`/${env}/emails/campaign`)
       router.refresh()
     } catch {
-      showToast("Error", "Failed to update campaign", "error");
+      showToast(t("common.error"), t("campaigns.failedToUpdate"), "error");
     } finally {
       setIsSubmitting(false)
     }
@@ -160,29 +162,29 @@ export default function EditCampaignPage() {
   return (
     <div className="px-6 pt-8">
       <Toaster ref={toasterRef} />
-      <h1 className="text-2xl font-semibold">Edit Campaign</h1>
-      <p className="text-muted-foreground">Update existing campaign</p>
+      <h1 className="text-2xl font-semibold">{t("campaigns.editCampaign")}</h1>
+      <p className="text-muted-foreground">{t("campaigns.updateExistingCampaign")}</p>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Name */}
         <div>
           <Label htmlFor="name" className={`mb-2 mt-4 ${errors.name ? 'text-destructive' : ''}`}>
-            Name *
+            {t("common.name")} *
           </Label>
           <Input id="name" className={`w-full ${errors.name ? 'border-destructive' : ''}`} value={formData.name}
             onChange={(e) => {
               setFormData((prev) => ({ ...prev, name: e.target.value }))
               if (errors.name) setErrors((prev) => ({ ...prev, name: "" }))
             }}
-            placeholder="Enter Name"/>
+            placeholder={t("sendProcess.enterCampaignName")}/>
           {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
         </div>
 
         {/* Local */}
         <div>
-          <Label className={`mb-2 mt-4 ${errors.local ? 'text-destructive' : ''}`}>Local *</Label>
+          <Label className={`mb-2 mt-4 ${errors.local ? 'text-destructive' : ''}`}>{t("audience.local")} *</Label>
           <Select value={formData.local} onValueChange={(value) => setFormData((prev) => ({ ...prev, local: value as LocaleCode }))}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Local" />
+              <SelectValue placeholder={t("audience.selectLocal")} />
             </SelectTrigger>
             <SelectContent>
               {LOCALES.map((loc) => (
@@ -197,11 +199,11 @@ export default function EditCampaignPage() {
         {/* Audience */}
         <div>
           <Label className={`mb-2 mt-4 ${errors.audienceId ? 'text-destructive' : ''}`}>
-            Audience *
+            {t("navigation.audience")} *
           </Label>
           <Select value={formData.audienceId} onValueChange={(value) => setFormData((prev) => ({ ...prev, audienceId: value }))} >
             <SelectTrigger className={`w-full ${errors.audienceId ? 'border-destructive' : ''}`}>
-              <SelectValue placeholder="Select Audience" />
+              <SelectValue placeholder={t("sendProcess.selectAudience")} />
             </SelectTrigger>
             <SelectContent>
               {audiences.map((audience) => (
@@ -217,11 +219,11 @@ export default function EditCampaignPage() {
         {/* Sender */}
         <div>
           <Label className={`mb-2 mt-4 ${errors.senderId ? 'text-destructive' : ''}`}>
-            Sender *
+            {t("campaigns.sender")} *
           </Label>
           <Select value={formData.senderId} onValueChange={(value) => setFormData((prev) => ({ ...prev, senderId: value }))}>
             <SelectTrigger className={`w-full ${errors.senderId ? 'border-destructive' : ''}`}>
-              <SelectValue placeholder="Select Sender" />
+              <SelectValue placeholder={t("sendProcess.selectSender")} />
             </SelectTrigger>
             <SelectContent>
               {senders.map((sender) => (
@@ -237,11 +239,11 @@ export default function EditCampaignPage() {
         {/* Sender Alias */}
         <div>
           <Label className={`mb-2 mt-4 ${errors.senderAlias ? 'text-destructive' : ''}`}>
-            Sender Alias *
+            {t("senders.alias")} *
           </Label>
           <Select value={formData.senderAlias} onValueChange={(value) => setFormData((prev) => ({ ...prev, senderAlias: value }))} disabled={!selectedSender}>
             <SelectTrigger className={`w-full ${errors.senderAlias ? 'border-destructive' : ''}`}>
-              <SelectValue placeholder={selectedSender ? "Select Sender Alias" : "Select a sender first"} />
+              <SelectValue placeholder={selectedSender ? t("sendProcess.selectAnAlias") : t("campaigns.selectSenderFirst")} />
             </SelectTrigger>
             <SelectContent>
               {selectedSender?.alias.map((alias) => (
@@ -257,11 +259,11 @@ export default function EditCampaignPage() {
         {/* Template */}
         <div>
           <Label className={`mb-2 mt-4 ${errors.templateId ? 'text-destructive' : ''}`}>
-            Template *
+            {t("campaigns.template")} *
           </Label>
           <Select value={formData.templateId} onValueChange={(value) => setFormData((prev) => ({ ...prev, templateId: value }))}>
             <SelectTrigger className={`w-full ${errors.templateId ? 'border-destructive' : ''}`}>
-              <SelectValue placeholder="Select Template" />
+              <SelectValue placeholder={t("sendProcess.selectTemplate")} />
             </SelectTrigger>
             <SelectContent>
               {templates.map((template) => (
@@ -277,14 +279,14 @@ export default function EditCampaignPage() {
         {/* Subject */}
         <div>
           <Label htmlFor="subject" className={`mb-2 mt-4 ${errors.subject ? 'text-destructive' : ''}`}>
-            Subject *
+            {t("campaigns.subject")} *
           </Label>
           <Input 
             id="subject" 
             value={formData.subject} 
             onChange={(e) => setFormData((prev) => ({ ...prev, subject: e.target.value }))} 
             className={`w-full ${errors.subject ? 'border-destructive' : ''}`} 
-            placeholder="Enter email subject" 
+            placeholder={t("sendProcess.enterEmailSubject")} 
           />
           {errors.subject && <p className="text-sm text-destructive">{errors.subject}</p>}
         </div>
@@ -292,42 +294,25 @@ export default function EditCampaignPage() {
         {/* Content */}
         <div>
           <Label htmlFor="content" className={`mb-2 mt-4 ${errors.content ? 'text-destructive' : ''}`}>
-            Content *
+            {t("campaigns.content")} *
           </Label>
           <Textarea 
             id="content" 
             value={formData.content} 
             onChange={(e) => setFormData((prev) => ({ ...prev, content: e.target.value }))} 
             className={`w-full ${errors.content ? 'border-destructive' : ''} min-h-[150px]`} 
-            placeholder="Enter email content" 
+            placeholder={t("sendProcess.enterEmailContent")} 
           />
           {errors.content && <p className="text-sm text-destructive">{errors.content}</p>}
         </div>
 
-        {/* Status */}
-        {/* <div>
-          <Label className="mb-2 mt-4">Status *</Label>
-          <Select value={formData.status} onValueChange={(value) => setFormData((prev) => ({ ...prev, status: value as "draft" | "planned" | "archived" | "sending" | "sent" }))}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="planned">Planned</SelectItem>
-              <SelectItem value="archived">Archived</SelectItem>
-              <SelectItem value="sending">Sending</SelectItem>
-              <SelectItem value="sent">Sent</SelectItem>
-            </SelectContent>
-          </Select>
-        </div> */}
-
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-2">
           <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Saving..." : "Save"}
+            {isSubmitting ? t("audience.saving") : t("common.save")}
           </Button>
         </div>
       </form>

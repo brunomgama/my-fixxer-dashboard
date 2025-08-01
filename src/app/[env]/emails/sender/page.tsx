@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { SenderApi } from "@/lib/api/sender"
 import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
 import { Button } from "@/components/ui/button"
 import { Sender } from "@/lib/types/sender"
 
@@ -18,7 +19,9 @@ import Toaster from "@/components/toast"
 
 export default function SenderPage() {
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   const api = useMemo(() => new SenderApi(env), [env])
+
   const { toasterRef, showToast } = useToast();
 
   const [data, setData] = useState<Sender[]>([])
@@ -33,12 +36,11 @@ export default function SenderPage() {
       const result = await api.list({ limit: 50 })
       setData(result.results)
     } catch {
-      showToast("Error", "Failed to fetch senders", "error");
-      setError("Failed to fetch senders")
+      setError(t("senders.failedToLoad"))
     } finally {
       setLoading(false)
     }
-  }, [api])
+  }, [api, t])
 
   useEffect(() => {
     fetchSender()
@@ -50,10 +52,10 @@ export default function SenderPage() {
     setIsDeleting(true)
     try {
       await api.delete(selectedId)
-      showToast("Success", "Sender deleted", "success");
+      showToast(t("common.success"), t("senders.senderDeleted"), "success");
       fetchSender()
     } catch {
-      showToast("Error", "Failed to delete sender", "error");
+      showToast(t("common.error"), t("senders.failedToDelete"), "error");
     } finally {
       setSelectedId(null)
       setIsDeleting(false)
@@ -65,10 +67,10 @@ export default function SenderPage() {
       const updatedSender = { ...sender, active: !sender.active, user: "system" }
   
       await api.update(sender.id, updatedSender)
-      showToast("Success", `Sender ${updatedSender.active ? "activated" : "deactivated"}`, "success");
+      showToast(t("common.success"), updatedSender.active ? t("senders.senderActivated") : t("senders.senderDeactivated"), "success");
       fetchSender()
     } catch {
-      showToast("Error", "Failed to update sender status", "error");
+      showToast(t("common.error"), t("senders.failedToUpdateStatus"), "error");
     }
   }
   
@@ -85,7 +87,6 @@ export default function SenderPage() {
     }
   }
   
-
   if (loading) return <RippleWaveLoader />
   if (error) return <p className="p-4 text-destructive">{error}</p>
 
@@ -94,13 +95,13 @@ export default function SenderPage() {
       <Toaster ref={toasterRef} />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Senders</h1>
-          <p className="text-muted-foreground">Manage existing senders</p>
+          <h1 className="text-2xl font-semibold">{t("senders.title")}</h1>
+          <p className="text-muted-foreground">{t("senders.description")}</p>
         </div>
         <Link href={`/${env}/emails/sender/creation`}>
           <Button>
             <IconPlus className="w-4 h-4 mr-2" />
-            Add Sender
+            {t("senders.addSender")}
           </Button>
         </Link>
       </div>
@@ -109,11 +110,11 @@ export default function SenderPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Email</TableHead>
-              <TableHead>Alias</TableHead>
-              <TableHead>Email Type</TableHead>
-              <TableHead>Active</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("common.email")}</TableHead>
+              <TableHead>{t("senders.alias")}</TableHead>
+              <TableHead>{t("senders.emailTypes")}</TableHead>
+              <TableHead>{t("common.active")}</TableHead>
+              <TableHead className="text-right">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -129,7 +130,7 @@ export default function SenderPage() {
                   <TableCell>
                     {sender.alias?.length > 0
                       ? sender.alias.join(", ")
-                      : <span className="text-muted-foreground italic">None</span>}
+                      : <span className="text-muted-foreground italic">{t("senders.none")}</span>}
                   </TableCell>
                   <TableCell>
                     {sender.emailType?.length > 0 ? (
@@ -139,48 +140,51 @@ export default function SenderPage() {
                             key={type}
                             className={getEmailTypeBadgeStyle(type)}
                           >
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                            {t(`senders.${type}`)}
                           </Badge>
                         ))}
                       </div>
                     ) : (
-                      <span className="text-muted-foreground italic">None</span>
+                      <span className="text-muted-foreground italic">{t("senders.none")}</span>
                     )}
                   </TableCell>
                   <TableCell>
                     {sender.active ? (
                       <Badge variant="outline" className="bg-green-100 text-green-700">
                         <ShieldCheck className="w-3.5 h-3.5 mr-1" />
-                        Active
+                        {t("common.active")}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="bg-red-100 text-red-700">
                         <ShieldX className="w-3.5 h-3.5 mr-1" />
-                        Inactive
+                        {t("common.inactive")}
                       </Badge>
                     )}
-                  </TableCell>  
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Link href={`/${env}/emails/sender/${sender.id}/edit`}>
-                        <Button variant="outline" size="sm">
-                          <IconEdit className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <Button variant="outline" size="sm" className="text-destructive" onClick={() => setSelectedId(sender.id)}>
-                        <IconTrash className="h-4 w-4" />
+                  </TableCell>
+
+                  <TableCell className="text-right flex justify-end gap-2">
+                    <Link href={`/${env}/emails/sender/${sender.id}/edit`}>
+                      <Button variant="outline" size="sm">
+                        <IconEdit className="h-4 w-4" />
                       </Button>
-                      <Button  variant="outline"  size="sm"  onClick={() => handleToggleActive(sender)}>
-                        {sender.active ? "Deactivate" : "Activate"}
-                      </Button>
-                    </div>
+                    </Link>
+                    <Button variant="outline" size="sm" className="text-destructive" onClick={() => setSelectedId(sender.id)}>
+                      <IconTrash className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleToggleActive(sender)}
+                    >
+                      {sender.active ? t("audience.deactivate") : t("audience.activate")}
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-10">
-                  No sender found.
+                  {t("senders.noSendersFound")}
                 </TableCell>
               </TableRow>
             )}
@@ -193,6 +197,8 @@ export default function SenderPage() {
         onClose={() => setSelectedId(null)}
         onConfirm={handleConfirmDelete}
         loading={isDeleting}
+        title={t("common.delete")}
+        description={t("audience.deleteConfirmation")}
       />
     </div>
   )

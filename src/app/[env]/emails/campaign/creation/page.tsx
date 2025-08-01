@@ -7,6 +7,7 @@ import { AudienceApi } from "@/lib/api/audience"
 import { SenderApi } from "@/lib/api/sender"
 import { TemplateApi } from "@/lib/api/template"
 import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -27,6 +28,7 @@ import Toaster from "@/components/toast"
 
 export default function CreateCampaignPage() {
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   const router = useRouter()
   const { toasterRef, showToast } = useToast();
 
@@ -65,11 +67,11 @@ export default function CreateCampaignPage() {
         setSenders(senderResult.results)
         setTemplates(templateResult.results)
       } catch {
-        showToast("Error", "Failed to load form data", "error")
+        showToast(t("common.error"), t("campaigns.failedToLoadData"), "error")
       }
     }
     fetchData()
-  }, [audienceApi, senderApi, templateApi])
+  }, [audienceApi, senderApi, templateApi, showToast, t])
 
   useEffect(() => {
     if (senderId) {
@@ -82,13 +84,13 @@ export default function CreateCampaignPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
-    if (!name.trim()) newErrors.name = "Name is required"
-    if (!audienceId.trim()) newErrors.audienceId = "Audience is required"
-    if (!senderId.trim()) newErrors.senderId = "Sender is required"
-    if (!senderAlias.trim()) newErrors.senderAlias = "Sender Alias is required"
-    if (!subject.trim()) newErrors.subject = "Subject is required"
-    if (!content.trim()) newErrors.content = "Content is required"
-    if (!templateId.trim()) newErrors.templateId = "Template is required"
+    if (!name.trim()) newErrors.name = t("validation.nameRequired")
+    if (!audienceId.trim()) newErrors.audienceId = t("audience.selectAudience")
+    if (!senderId.trim()) newErrors.senderId = t("campaigns.selectSender")
+    if (!senderAlias.trim()) newErrors.senderAlias = t("campaigns.senderAliasRequired")
+    if (!subject.trim()) newErrors.subject = t("campaigns.subjectRequired")
+    if (!content.trim()) newErrors.content = t("campaigns.contentRequired")
+    if (!templateId.trim()) newErrors.templateId = t("campaigns.templateRequired")
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -99,7 +101,7 @@ export default function CreateCampaignPage() {
 
     if (!validateForm()) {
       const errorFields = Object.values(errors).join(", ");
-      showToast("Error", `Please fix the following fields: ${errorFields}`, "error");
+      showToast(t("common.error"), t("forms.pleaseFixFields") + ": " + errorFields, "error");
       return
     }
 
@@ -117,12 +119,10 @@ export default function CreateCampaignPage() {
         status: "draft",
         user: "system" 
       })
-      console.log("Campaign created successfully")
-      showToast("Success", "Campaign created", "success")
+      showToast(t("common.success"), t("campaigns.campaignCreated"), "success")
       router.push(`/${env}/emails/campaign`)
     } catch (err) {
-      console.error("Failed to create campaign:", err)
-      showToast("Error", "Failed to create campaign", "error")
+      showToast(t("common.error"), t("campaigns.failedToCreate"), "error")
     } finally {
       setIsSubmitting(false)
     }
@@ -131,13 +131,13 @@ export default function CreateCampaignPage() {
   return (
     <div className="px-6 pt-8">
       <Toaster ref={toasterRef} />
-      <h1 className="text-2xl font-semibold">Create Campaign</h1>
-      <p className="text-muted-foreground">Add a new email campaign</p>
+      <h1 className="text-2xl font-semibold">{t("campaigns.createCampaign")}</h1>
+      <p className="text-muted-foreground">{t("campaigns.addCampaign")}</p>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Name */}
         <div>
           <Label htmlFor="name" className={`mb-2 mt-4 ${errors.name ? 'text-destructive' : ''}`}>
-            Name *
+            {t("common.name")} *
           </Label>
           <Input
             id="name"
@@ -147,15 +147,16 @@ export default function CreateCampaignPage() {
               setName(e.target.value)
               if (errors.name) setErrors((prev) => ({ ...prev, name: "" }))
             }}
+            placeholder={t("sendProcess.enterCampaignName")}
           />
         </div>
 
         {/* Local */}
         <div>
-          <Label className={`mb-2 mt-4 ${errors.local ? 'text-destructive' : ''}`}>Local *</Label>
+          <Label className={`mb-2 mt-4 ${errors.local ? 'text-destructive' : ''}`}>{t("audience.local")} *</Label>
           <Select value={local} onValueChange={(value) => setLocal(value as LocaleCode)}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Local" />
+              <SelectValue placeholder={t("audience.selectLocal")} />
             </SelectTrigger>
             <SelectContent>
               {LOCALES.map((loc) => (
@@ -170,11 +171,11 @@ export default function CreateCampaignPage() {
         {/* Audience */}
         <div>
           <Label htmlFor="audience" className={`mb-2 mt-4 ${errors.audienceId ? 'text-destructive' : ''}`}>
-            Audience *
+            {t("navigation.audience")} *
           </Label>
           <Select value={audienceId} onValueChange={(value) => setAudienceId(value)}>
             <SelectTrigger className={`w-full ${errors.audienceId ? 'border-destructive' : ''}`}>
-              <SelectValue placeholder="Select Audience" />
+              <SelectValue placeholder={t("sendProcess.selectAudience")} />
             </SelectTrigger>
             <SelectContent>
               {audiences.map((audience) => (
@@ -189,11 +190,11 @@ export default function CreateCampaignPage() {
         {/* Sender */}
         <div>
           <Label htmlFor="sender" className={`mb-2 mt-4 ${errors.senderId ? 'text-destructive' : ''}`}>
-            Sender *
+            {t("campaigns.sender")} *
           </Label>
           <Select value={senderId} onValueChange={(value) => setSenderId(value)}>
             <SelectTrigger className={`w-full ${errors.senderId ? 'border-destructive' : ''}`}>
-              <SelectValue placeholder="Select Sender" />
+              <SelectValue placeholder={t("sendProcess.selectSender")} />
             </SelectTrigger>
             <SelectContent>
               {senders.map((sender) => (
@@ -208,11 +209,11 @@ export default function CreateCampaignPage() {
         {/* Sender Alias */}
         <div>
           <Label htmlFor="senderAlias" className={`mb-2 mt-4 ${errors.senderAlias ? 'text-destructive' : ''}`}>
-            Sender Alias *
+            {t("senders.alias")} *
           </Label>
           <Select value={senderAlias} onValueChange={(value) => setSenderAlias(value)} disabled={!selectedSender}>
             <SelectTrigger className={`w-full ${errors.senderAlias ? 'border-destructive' : ''}`}>
-              <SelectValue placeholder={selectedSender ? "Select Sender Alias" : "Select a sender first"} />
+              <SelectValue placeholder={selectedSender ? t("sendProcess.selectAnAlias") : t("campaigns.selectSenderFirst")} />
             </SelectTrigger>
             <SelectContent>
               {selectedSender?.alias.map((alias) => (
@@ -227,11 +228,11 @@ export default function CreateCampaignPage() {
         {/* Template */}
         <div>
           <Label htmlFor="template" className={`mb-2 mt-4 ${errors.templateId ? 'text-destructive' : ''}`}>
-            Template *
+            {t("campaigns.template")} *
           </Label>
           <Select value={templateId} onValueChange={(value) => setTemplateId(value)}>
             <SelectTrigger className={`w-full ${errors.templateId ? 'border-destructive' : ''}`}>
-              <SelectValue placeholder="Select Template" />
+              <SelectValue placeholder={t("sendProcess.selectTemplate")} />
             </SelectTrigger>
             <SelectContent>
               {templates.map((template) => (
@@ -246,55 +247,38 @@ export default function CreateCampaignPage() {
         {/* Subject */}
         <div>
           <Label htmlFor="subject" className={`mb-2 mt-4 ${errors.subject ? 'text-destructive' : ''}`}>
-            Subject *
+            {t("campaigns.subject")} *
           </Label>
           <Input
             id="subject"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             className={`w-full ${errors.subject ? 'border-destructive' : ''}`}
-            placeholder="Enter email subject"
+            placeholder={t("sendProcess.enterEmailSubject")}
           />
         </div>
 
         {/* Content */}
         <div>
           <Label htmlFor="content" className={`mb-2 mt-4 ${errors.content ? 'text-destructive' : ''}`}>
-            Content *
+            {t("campaigns.content")} *
           </Label>
           <Textarea
             id="content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             className={`w-full ${errors.content ? 'border-destructive' : ''} min-h-[150px]`}
-            placeholder="Enter email content"
+            placeholder={t("sendProcess.enterEmailContent")}
           />
         </div>
-
-        {/* Status */}
-        {/* <div>
-          <Label className="mb-2 mt-4">Status *</Label>
-          <Select value={status} onValueChange={(value) => setStatus(value as typeof status)}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="planned">Planned</SelectItem>
-              <SelectItem value="archived">Archived</SelectItem>
-              <SelectItem value="sending">Sending</SelectItem>
-              <SelectItem value="sent">Sent</SelectItem>
-            </SelectContent>
-          </Select>
-        </div> */}
 
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-2">
           <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create"}
+            {isSubmitting ? t("audience.creating") : t("common.create")}
           </Button>
         </div>
       </form>

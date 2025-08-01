@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback, useMemo } from "react"
 import { IconPlus, IconFile, IconEdit, IconTrash, IconCopy } from "@tabler/icons-react"
 
 import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
 import { TemplateApi } from "@/lib/api/template"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -17,6 +18,7 @@ import Toaster from "@/components/toast"
 
 export default function TemplatePage() {
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   const api = useMemo(() => new TemplateApi(env), [env])
 
   const { toasterRef, showToast } = useToast();
@@ -33,11 +35,11 @@ export default function TemplatePage() {
       const result = await api.list({ limit: 50 })
       setData(result.results)
     } catch {
-      setError("Failed to fetch templates")
+      setError(t("templates.failedToLoad"))
     } finally {
       setLoading(false)
     }
-  }, [api])
+  }, [api, t])
 
   useEffect(() => {
     fetchTemplates()
@@ -49,10 +51,10 @@ export default function TemplatePage() {
     setIsDeleting(true)
     try {
       await api.delete(selectedId)
-      showToast("Success", "Template deleted", "success")
+      showToast(t("common.success"), t("templates.templateDeleted"), "success")
       fetchTemplates()
     } catch {
-      showToast("Error", "Failed to delete template", "error")
+      showToast(t("common.error"), t("templates.failedToDelete"), "error")
     } finally {
       setSelectedId(null)
       setIsDeleting(false)
@@ -62,10 +64,10 @@ export default function TemplatePage() {
   const handleDuplicate = async (id: string, name: string) => {
     try {
       await api.duplicate(id)
-      showToast("Success", `Template "${name}" duplicated`, "success")
+      showToast(t("common.success"), t("templates.templateDuplicated"), "success")
       fetchTemplates()
     } catch {
-      showToast("Error", "Failed to duplicate template", "error")
+      showToast(t("common.error"), t("templates.failedToDuplicate"), "error")
     }
   }
 
@@ -74,19 +76,19 @@ export default function TemplatePage() {
       case 'published':
         return (
           <Badge variant="outline" className="bg-green-100 text-green-700">
-            Published
+            {t("templates.published")}
           </Badge>
         )
       case 'draft':
         return (
           <Badge variant="outline" className="bg-yellow-100 text-yellow-700">
-            Draft
+            {t("templates.draft")}
           </Badge>
         )
       case 'archived':
         return (
           <Badge variant="outline" className="bg-gray-100 text-gray-700">
-            Archived
+            {t("templates.archived")}
           </Badge>
         )
       default:
@@ -106,13 +108,13 @@ export default function TemplatePage() {
       <Toaster ref={toasterRef} />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Templates</h1>
-          <p className="text-muted-foreground">Manage email templates</p>
+          <h1 className="text-2xl font-semibold">{t("templates.title")}</h1>
+          <p className="text-muted-foreground">{t("templates.description")}</p>
         </div>
         <Link href={`/${env}/emails/template/creation`}>
           <Button>
             <IconPlus className="w-4 h-4 mr-2" />
-            Add Template
+            {t("templates.addTemplate")}
           </Button>
         </Link>
       </div>
@@ -121,11 +123,11 @@ export default function TemplatePage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Local</TableHead>
-              <TableHead>Email Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("common.name")}</TableHead>
+              <TableHead>{t("audience.local")}</TableHead>
+              <TableHead>{t("audience.emailType")}</TableHead>
+              <TableHead>{t("audience.status")}</TableHead>
+              <TableHead className="text-right">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -144,7 +146,7 @@ export default function TemplatePage() {
                     {template.local}
                   </TableCell>
 
-                  <TableCell className="capitalize">{template.emailType}</TableCell>
+                  <TableCell className="capitalize">{t(`senders.${template.emailType}`)}</TableCell>
 
                   <TableCell>
                     {getStatusBadge(template.status)}
@@ -172,7 +174,7 @@ export default function TemplatePage() {
             ) : (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-10">
-                  No templates found.
+                  {t("templates.noTemplatesFound")}
                 </TableCell>
               </TableRow>
             )}
@@ -185,8 +187,8 @@ export default function TemplatePage() {
         onClose={() => setSelectedId(null)}
         onConfirm={handleConfirmDelete}
         loading={isDeleting}
-        title="Confirm Deletion"
-        description="Are you sure you want to delete this template? This action cannot be undone."
+        title={t("common.delete")}
+        description={t("audience.deleteConfirmation")}
       />
     </div>
   )

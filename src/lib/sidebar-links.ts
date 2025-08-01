@@ -25,54 +25,54 @@ import {
   
   export const sidebarLinks: SidebarLink[] = [
     {
-      label: "Home",
+      label: "navigation.home",
       href: "/",
       icon: Home,
     },
     {
-      label: "Send Email",
+      label: "navigation.sendEmail",
       href: "/send-process",
       icon: Send,
     },
     { divider: true },
     {
-      label: "Audience Type",
+      label: "navigation.audienceTypes",
       href: "/emails/audience-type",
       icon: Group,
     },
     {
-      label: "Audience",
+      label: "navigation.audience",
       href: "/emails/audience",
       icon: UsersRound,
     },
     {
-      label: "Sender",
+      label: "navigation.senders",
       href: "/emails/sender",
       icon: TicketsPlane,
     },
     {
-      label: "Templates",
+      label: "navigation.templates",
       href: "/emails/template",
       icon: File,
     },
     {
-      label: "Campaigns",
+      label: "navigation.campaigns",
       href: "/emails/campaign",
       icon: Mail,
     },
     {
-      label: "Schedules",
+      label: "navigation.schedules",
       href: "/emails/schedule",
       icon: Clock,
     },
     {
-      label: "Unsubscriptions",
+      label: "navigation.unsubscribe",
       href: "/emails/unsubscribe",
       icon: UserMinus,
     },
     { divider: true },
     {
-      label: "Workflows",
+      label: "navigation.workflows",
       href: "/workflows",
       icon: Layout,
       badge: "BETA",

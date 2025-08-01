@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
 import { UnsubscribeApi } from "@/lib/api/unsubscribe"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,6 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export default function UnsubscribePage() {
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   
   // Remove useMemo to ensure API instance is always fresh and matches current environment
 //   console.log('Creating UnsubscribeApi instance for env:', env)
@@ -127,13 +129,13 @@ export default function UnsubscribePage() {
       
     } catch (err: any) {
       console.error('fetchUnsubscribes error:', err)
-      const errorMessage = err.message || "Failed to fetch unsubscriptions"
+      const errorMessage = err.message || t("unsubscribe.failedToFetch")
       setError(errorMessage)
-      showToast("Error", errorMessage, "error")
+      showToast(t("common.error"), errorMessage, "error")
     } finally {
       setLoading(false)
     }
-  }, [api, filters, itemsPerPage, lastEvaluatedKey, emailFilter, emailTypeFilter, showToast, env])
+  }, [api, filters, itemsPerPage, lastEvaluatedKey, emailFilter, emailTypeFilter, showToast, env, t])
 
   useEffect(() => {
     console.log('useEffect triggered, calling fetchUnsubscribes')
@@ -142,7 +144,7 @@ export default function UnsubscribePage() {
 
   const handleSearch = async () => {
     if (!searchEmail.trim()) {
-      showToast("Error", "Please enter an email address", "error")
+      showToast(t("common.error"), t("unsubscribe.pleaseEnterEmail"), "error")
       return
     }
 
@@ -153,14 +155,14 @@ export default function UnsubscribePage() {
     try {
       const result = await api.searchByEmail(searchEmail.trim(), searchEmailType)
       setSearchResult(result)
-      showToast("Success", "Unsubscription found", "success")
+      showToast(t("common.success"), t("unsubscribe.unsubscriptionFound"), "success")
     } catch (error: any) {
       if (error.message.includes("404")) {
-        setSearchError("No unsubscription found for this email and type")
-        showToast("Info", "No unsubscription found", "warning")
+        setSearchError(t("unsubscribe.noUnsubscriptionFound"))
+        showToast(t("common.info"), t("unsubscribe.noUnsubscriptionFound"), "warning")
       } else {
-        setSearchError("Failed to search unsubscription")
-        showToast("Error", "Failed to search unsubscription", "error")
+        setSearchError(t("unsubscribe.failedToSearch"))
+        showToast(t("common.error"), t("unsubscribe.failedToSearch"), "error")
       }
     } finally {
       setSearchLoading(false)
@@ -173,7 +175,7 @@ export default function UnsubscribePage() {
     setIsDeleting(true)
     try {
       await api.delete(selectedUnsubscribe.email, selectedUnsubscribe.emailType)
-      showToast("Success", "Unsubscription removed", "success")
+      showToast(t("common.success"), t("unsubscribe.unsubscriptionRemoved"), "success")
       
       // Remove from main list if it exists
       setUnsubscribes(prev => prev.filter(u => 
@@ -185,14 +187,14 @@ export default function UnsubscribePage() {
           searchResult.email === selectedUnsubscribe.email && 
           searchResult.emailType === selectedUnsubscribe.emailType) {
         setSearchResult(null)
-        setSearchError("No unsubscription found for this email and type")
+        setSearchError(t("unsubscribe.noUnsubscriptionFound"))
       }
       
       // Refresh the list to get accurate count
       fetchUnsubscribes(true)
       
     } catch {
-      showToast("Error", "Failed to remove unsubscription", "error")
+      showToast(t("common.error"), t("unsubscribe.failedToRemove"), "error")
     } finally {
       setIsDeleting(false)
       setSelectedUnsubscribe(null)
@@ -262,11 +264,11 @@ export default function UnsubscribePage() {
       <div className="p-4">
         <p className="text-destructive mb-4">{error}</p>
         <div className="bg-gray-100 p-4 rounded text-sm">
-          <h3 className="font-semibold mb-2">Debug Information:</h3>
+          <h3 className="font-semibold mb-2">{t("unsubscribe.debugInformation")}:</h3>
           <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
         </div>
         <Button onClick={() => fetchUnsubscribes(true)} className="mt-4">
-          Retry
+          {t("unsubscribe.retry")}
         </Button>
       </div>
     )
@@ -276,27 +278,12 @@ export default function UnsubscribePage() {
     <div className="space-y-6 mr-4 mb-4">
       <Toaster ref={toasterRef} />
       
-      {/* Debug Panel (only in development) */}
-      {/* {process.env.NODE_ENV === 'development' && (
-        <div className="bg-gray-50 p-4 rounded-lg border text-sm">
-          <h3 className="font-semibold mb-2">Debug Info:</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>Environment: {env}</div>
-            <div>Loading: {loading.toString()}</div>
-            <div>Results: {unsubscribes.length}</div>
-            <div>Total Count: {totalCount}</div>
-            <div>Last Key: {lastEvaluatedKey || 'none'}</div>
-            <div>Error: {error || 'none'}</div>
-          </div>
-        </div>
-      )} */}
-      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Unsubscriptions</h1>
+          <h1 className="text-2xl font-semibold">{t("unsubscribe.title")}</h1>
           <p className="text-muted-foreground">
-            Manage email unsubscriptions ({totalCount} total)
+            {t("unsubscribe.description")} ({totalCount} {t("unsubscribe.total")})
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -305,12 +292,12 @@ export default function UnsubscribePage() {
             onClick={() => setShowFilters(!showFilters)}
           >
             <IconFilter className="w-4 h-4 mr-2" />
-            Filters
+            {t("unsubscribe.filters")}
           </Button>
           {hasActiveFilters && (
             <Button variant="outline" onClick={handleClearFilters}>
               <IconX className="w-4 h-4 mr-2" />
-              Clear
+              {t("unsubscribe.clear")}
             </Button>
           )}
         </div>
@@ -319,34 +306,34 @@ export default function UnsubscribePage() {
       {/* Filters Section */}
       {showFilters && (
         <div className="border rounded-lg p-6 space-y-4">
-          <h2 className="text-lg font-semibold">Filters</h2>
+          <h2 className="text-lg font-semibold">{t("unsubscribe.filters")}</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <Label htmlFor="emailFilter">Email</Label>
+              <Label htmlFor="emailFilter">{t("unsubscribe.email")}</Label>
               <Input
                 id="emailFilter"
                 type="email"
                 value={emailFilter}
                 onChange={(e) => setEmailFilter(e.target.value)}
-                placeholder="Filter by email"
+                placeholder={t("unsubscribe.filterByEmail")}
               />
             </div>
             <div>
-              <Label htmlFor="emailTypeFilter">Email Type</Label>
+              <Label htmlFor="emailTypeFilter">{t("unsubscribe.emailType")}</Label>
               <Select value={emailTypeFilter} onValueChange={setEmailTypeFilter}>
                 <SelectTrigger>
-                    <SelectValue placeholder="All types" />
+                    <SelectValue placeholder={t("unsubscribe.allTypes")} />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="Marketing">Marketing</SelectItem>
-                    <SelectItem value="Automation">Automation</SelectItem>
-                    <SelectItem value="Functional">Functional</SelectItem>
+                    <SelectItem value="all">{t("unsubscribe.allTypes")}</SelectItem>
+                    <SelectItem value="Marketing">{t("unsubscribe.marketing")}</SelectItem>
+                    <SelectItem value="Automation">{t("unsubscribe.automation")}</SelectItem>
+                    <SelectItem value="Functional">{t("unsubscribe.functional")}</SelectItem>
                 </SelectContent>
                 </Select>
             </div>
             <div>
-              <Label htmlFor="sortBy">Sort By</Label>
+              <Label htmlFor="sortBy">{t("unsubscribe.sortBy")}</Label>
               <Select 
                 value={filters.sortBy} 
                 onValueChange={(value) => setFilters(prev => ({ ...prev, sortBy: value }))}
@@ -355,14 +342,14 @@ export default function UnsubscribePage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="unsubscribedAt">Unsubscribed Date</SelectItem>
-                  <SelectItem value="email">Email</SelectItem>
-                  <SelectItem value="emailType">Email Type</SelectItem>
+                  <SelectItem value="unsubscribedAt">{t("unsubscribe.unsubscribedDate")}</SelectItem>
+                  <SelectItem value="email">{t("unsubscribe.email")}</SelectItem>
+                  <SelectItem value="emailType">{t("unsubscribe.emailType")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label htmlFor="sortOrder">Sort Order</Label>
+              <Label htmlFor="sortOrder">{t("unsubscribe.sortOrder")}</Label>
               <Select 
                 value={filters.sortOrder} 
                 onValueChange={(value) => setFilters(prev => ({ ...prev, sortOrder: value }))}
@@ -371,18 +358,18 @@ export default function UnsubscribePage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="desc">Descending</SelectItem>
-                  <SelectItem value="asc">Ascending</SelectItem>
+                  <SelectItem value="desc">{t("unsubscribe.descending")}</SelectItem>
+                  <SelectItem value="asc">{t("unsubscribe.ascending")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setShowFilters(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button onClick={handleApplyFilters}>
-              Apply Filters
+              {t("unsubscribe.applyFilters")}
             </Button>
           </div>
         </div>
@@ -390,36 +377,36 @@ export default function UnsubscribePage() {
 
       {/* Search Section */}
       <div className="border rounded-lg p-6 space-y-4">
-        <h2 className="text-lg font-semibold">Search Unsubscription</h2>
+        <h2 className="text-lg font-semibold">{t("unsubscribe.searchUnsubscription")}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label htmlFor="searchEmail">Email Address</Label>
+            <Label htmlFor="searchEmail">{t("unsubscribe.emailAddress")}</Label>
             <Input
               id="searchEmail"
               type="email"
               value={searchEmail}
               onChange={(e) => setSearchEmail(e.target.value)}
-              placeholder="Enter email address"
+              placeholder={t("unsubscribe.enterEmailAddress")}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             />
           </div>
           <div>
-            <Label htmlFor="searchEmailType">Email Type</Label>
+            <Label htmlFor="searchEmailType">{t("unsubscribe.emailType")}</Label>
             <Select value={searchEmailType} onValueChange={setSearchEmailType}>
               <SelectTrigger>
-                <SelectValue placeholder="Select email type" />
+                <SelectValue placeholder={t("unsubscribe.selectEmailType")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Marketing">Marketing</SelectItem>
-                <SelectItem value="Automation">Automation</SelectItem>
-                <SelectItem value="Functional">Functional</SelectItem>
+                <SelectItem value="Marketing">{t("unsubscribe.marketing")}</SelectItem>
+                <SelectItem value="Automation">{t("unsubscribe.automation")}</SelectItem>
+                <SelectItem value="Functional">{t("unsubscribe.functional")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="flex items-end">
             <Button onClick={handleSearch} disabled={searchLoading} className="w-full">
               <IconSearch className="w-4 h-4 mr-2" />
-              {searchLoading ? "Searching..." : "Search"}
+              {searchLoading ? t("unsubscribe.searching") : t("unsubscribe.search")}
             </Button>
           </div>
         </div>
@@ -427,19 +414,19 @@ export default function UnsubscribePage() {
         {/* Search Results */}
         {searchResult && (
           <div className="mt-4 p-4 border rounded-lg bg-green-50">
-            <h3 className="font-medium text-green-800 mb-2">Unsubscription Found</h3>
+            <h3 className="font-medium text-green-800 mb-2">{t("unsubscribe.unsubscriptionFound")}</h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="font-medium">Email:</span> {searchResult.email}
+                <span className="font-medium">{t("unsubscribe.email")}:</span> {searchResult.email}
               </div>
               <div>
-                <span className="font-medium">Type:</span> 
+                <span className="font-medium">{t("common.type")}:</span> 
                 <Badge className={`ml-2 ${getEmailTypeBadge(searchResult.emailType)}`}>
-                  {searchResult.emailType}
+                  {t(`unsubscribe.${searchResult.emailType.toLowerCase()}`)}
                 </Badge>
               </div>
               <div>
-                <span className="font-medium">Unsubscribed:</span> {formatDateTime(searchResult.unsubscribedAt).date}
+                <span className="font-medium">{t("unsubscribe.unsubscribed")}:</span> {formatDateTime(searchResult.unsubscribedAt).date}
               </div>
               <div className="flex items-center justify-end">
                 <Button 
@@ -449,7 +436,7 @@ export default function UnsubscribePage() {
                   onClick={() => setSelectedUnsubscribe(searchResult)}
                 >
                   <IconTrash className="w-4 h-4 mr-2" />
-                  Remove
+                  {t("unsubscribe.remove")}
                 </Button>
               </div>
             </div>
@@ -468,10 +455,10 @@ export default function UnsubscribePage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Email</TableHead>
-              <TableHead>Email Type</TableHead>
-              <TableHead>Unsubscribed At</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("unsubscribe.email")}</TableHead>
+              <TableHead>{t("unsubscribe.emailType")}</TableHead>
+              <TableHead>{t("unsubscribe.unsubscribedAt")}</TableHead>
+              <TableHead className="text-right">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -488,7 +475,7 @@ export default function UnsubscribePage() {
 
                     <TableCell>
                       <Badge className={getEmailTypeBadge(unsubscribe.emailType)}>
-                        {unsubscribe.emailType}
+                        {t(`unsubscribe.${unsubscribe.emailType.toLowerCase()}`)}
                       </Badge>
                     </TableCell>
 
@@ -518,7 +505,7 @@ export default function UnsubscribePage() {
             ) : (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-10">
-                  {loading ? "Loading..." : "No unsubscriptions found."}
+                  {loading ? t("unsubscribe.loading") : t("unsubscribe.noUnsubscriptionsFound")}
                 </TableCell>
               </TableRow>
             )}
@@ -535,11 +522,11 @@ export default function UnsubscribePage() {
               className="w-full"
             >
               {loading ? (
-                "Loading..."
+                t("unsubscribe.loading")
               ) : (
                 <>
                   <IconChevronRight className="w-4 h-4 mr-2" />
-                  Load More ({unsubscribes.length} of {totalCount})
+                  {t("unsubscribe.loadMore")} ({unsubscribes.length} of {totalCount})
                 </>
               )}
             </Button>
@@ -553,9 +540,9 @@ export default function UnsubscribePage() {
         onClose={() => setSelectedUnsubscribe(null)}
         onConfirm={handleRemoveUnsubscription}
         loading={isDeleting}
-        title="Remove Unsubscription"
+        title={t("unsubscribe.removeUnsubscription")}
         description={selectedUnsubscribe ? 
-          `Are you sure you want to remove the unsubscription for "${selectedUnsubscribe.email}" from ${selectedUnsubscribe.emailType} emails? This will allow them to receive emails again.` :
+          `${t("unsubscribe.removeConfirmation")} "${selectedUnsubscribe.email}" ${selectedUnsubscribe.emailType}` :
           ""
         }
       />

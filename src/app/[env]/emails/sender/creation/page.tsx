@@ -4,6 +4,7 @@ import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { SenderApi } from "@/lib/api/sender"
 import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -12,6 +13,7 @@ import { useToast } from "@/hooks/useToast"
 
 export default function CreateSenderPage() {
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   const router = useRouter()
   const api = useMemo(() => new SenderApi(env), [env])
   const { toasterRef, showToast } = useToast();
@@ -28,9 +30,9 @@ export default function CreateSenderPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
   
-    if (!email.trim()) newErrors.email = "Email is required"
-    if (alias.length === 0) newErrors.alias = "At least one alias is required"
-    if (emailType.length === 0) newErrors.emailType = "At least one email type is required"
+    if (!email.trim()) newErrors.email = t("senders.emailRequired")
+    if (alias.length === 0) newErrors.alias = t("senders.aliasRequired")
+    if (emailType.length === 0) newErrors.emailType = t("senders.emailTypeRequired")
   
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -44,10 +46,10 @@ export default function CreateSenderPage() {
     setIsSubmitting(true)
     try {
       await api.create({ email, alias, emailType, active, user: "Bruno" })
-      showToast("Success", "Sender created successfully", "success")
+      showToast(t("common.success"), t("senders.senderCreated"), "success")
       router.push(`/${env}/emails/sender`)
     } catch (err) {
-      showToast("Error", "Failed to create sender", "error")
+      showToast(t("common.error"), t("senders.failedToCreate"), "error")
       console.error("Failed to create sender:", err)
     } finally {
       setIsSubmitting(false)
@@ -57,17 +59,17 @@ export default function CreateSenderPage() {
   return (
     <div className="px-6 pt-8">
       <Toaster ref={toasterRef} />
-      <h1 className="text-2xl font-semibold">Create Sender</h1>
-      <p className="text-muted-foreground">Add a new sender</p>
+      <h1 className="text-2xl font-semibold">{t("senders.createSender")}</h1>
+      <p className="text-muted-foreground">{t("senders.addSender")}</p>
       <form onSubmit={handleSubmit} className="space-y-6">
 
         {/* Email */}
         <div className="w-full">
           <Label htmlFor="email" className={`mb-2 mt-4 ${errors.email ? 'text-destructive' : ''}`}>
-            Email *
+            {t("common.email")} *
           </Label>
           <Input id="email"
-            className={`w-full ${errors.email ? 'border-destructive' : ''}`} value={email} placeholder="sender@email.com"
+            className={`w-full ${errors.email ? 'border-destructive' : ''}`} value={email} placeholder={t("senders.enterSenderEmail")}
             onChange={(e) => {
               setEmail(e.target.value)
               if (errors.email) setErrors((prev) => ({ ...prev, email: "" }))
@@ -78,11 +80,11 @@ export default function CreateSenderPage() {
         {/* Alias List */}
         <div>
           <Label className={`mb-2 mt-4 ${errors.alias ? 'text-destructive' : ''}`}>
-            Alias
+            {t("senders.alias")} *
           </Label>
           <div className="flex gap-2">
             <Input className={`w-full ${errors.alias ? 'border-destructive' : ''}`}
-              placeholder="Add alias"
+              placeholder={t("senders.addAlias")}
               value={newAlias}
               onChange={(e) => setNewAlias(e.target.value)}
               onKeyDown={(e) => {
@@ -91,7 +93,7 @@ export default function CreateSenderPage() {
                   setAlias((prev) => [...prev, newAlias.trim()])
                   setNewAlias("")
                 }
-}}
+              }}
             />
             <Button type="button"
               onClick={() => {
@@ -101,7 +103,7 @@ export default function CreateSenderPage() {
                 }
               }}
             >
-              Add
+              {t("senders.add")}
             </Button>
           </div>
           {alias.length > 0 && (
@@ -110,7 +112,7 @@ export default function CreateSenderPage() {
                 <li key={idx} className="flex justify-between items-center border px-2 py-1 rounded">
                   {a}
                   <Button variant="ghost" size="sm" onClick={() => setAlias((prev) => prev.filter((_, i) => i !== idx))}>
-                    Remove
+                    {t("senders.remove")}
                   </Button>
                 </li>
               ))}
@@ -121,7 +123,7 @@ export default function CreateSenderPage() {
         {/* Email Type List */}
         <div>
           <Label className={`mb-2 mt-4 ${errors.emailType ? 'text-destructive' : ''}`}>
-            Email Type *
+            {t("senders.emailTypes")} *
           </Label>
           <div className="flex flex-wrap gap-2">
             {["campaign", "automation", "functional"].map((type) => (
@@ -134,7 +136,7 @@ export default function CreateSenderPage() {
                   )
                   if (errors.emailType) setErrors((prev) => ({ ...prev, emailType: "" }))
                 }} >
-                {type.charAt(0).toUpperCase() + type.slice(1)}
+                {t(`senders.${type}`)}
               </Button>
             ))}
           </div>
@@ -143,10 +145,10 @@ export default function CreateSenderPage() {
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-2">
           <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create"}
+            {isSubmitting ? t("senders.creating") : t("common.create")}
           </Button>
         </div>
       </form>

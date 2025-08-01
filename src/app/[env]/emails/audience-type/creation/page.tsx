@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { AudienceTypesApi } from "@/lib/api/audience-types"
 import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,6 +13,7 @@ import Toaster from "@/components/toast"
 
 export default function CreateAudienceTypePage() {
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   const router = useRouter()
   const api = new AudienceTypesApi(env)
   const { toasterRef, showToast } = useToast();
@@ -25,18 +27,18 @@ export default function CreateAudienceTypePage() {
     e.preventDefault()
 
     if (!name.trim()) {
-      showToast("Error", "Name is required", "error");
-      setError("Name is required")
+      showToast(t("common.error"), t("validation.nameRequired"), "error");
+      setError(t("validation.nameRequired"))
       return
     }
 
     setIsSubmitting(true)
     try {
       await api.create({ name, user: "system" })
-      showToast("Success", "Audience type created", "success");
+      showToast(t("common.success"), t("audienceTypes.createAudienceType"), "success");
       router.back()
     } catch (err) {
-      showToast("Error", "Failed to create audience type", "error");
+      showToast(t("common.error"), t("audienceTypes.failedToUpdate"), "error");
     } finally {
       setIsSubmitting(false)
     }
@@ -45,12 +47,12 @@ export default function CreateAudienceTypePage() {
   return (
     <div className="px-6 pt-8">
       <Toaster ref={toasterRef} />
-      <h1 className="text-2xl font-semibold">Create Audience Type</h1>
-      <p className="text-muted-foreground">Add a new audience type category</p>
+      <h1 className="text-2xl font-semibold">{t("audienceTypes.createAudienceType")}</h1>
+      <p className="text-muted-foreground">{t("audienceTypes.description")}</p>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <Label htmlFor="name" className={`mb-2 mt-4 ${error ? 'text-destructive' : ''}`}>
-            Name *
+            {t("common.name")} *
           </Label>
           <Input id="name" className={`w-full ${error ? 'border-destructive' : ''}`} value={name}
             onChange={(e) => {
@@ -60,10 +62,10 @@ export default function CreateAudienceTypePage() {
         </div>
         <div className="flex justify-end gap-3 pt-2">
           <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create"}
+            {isSubmitting ? t("audience.creating") : t("common.create")}
           </Button>
         </div>
       </form>

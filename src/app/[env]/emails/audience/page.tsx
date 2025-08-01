@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback, useMemo } from "react"
 import { IconPlus, IconUser, IconEdit, IconTrash } from "@tabler/icons-react"
 
 import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
 import { AudienceApi } from "@/lib/api/audience"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -18,6 +19,7 @@ import Toaster from "@/components/toast"
 
 export default function AudiencePage() {
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   const api = useMemo(() => new AudienceApi(env), [env])
 
   const { toasterRef, showToast } = useToast();
@@ -34,11 +36,11 @@ export default function AudiencePage() {
       const result = await api.list({ limit: 50 })
       setData(result.results)
     } catch {
-      setError("Failed to fetch audiences")
+      setError(t("audience.failedToLoad"))
     } finally {
       setLoading(false)
     }
-  }, [api])
+  }, [api, t])
 
   useEffect(() => {
     fetchAudiences()
@@ -50,10 +52,10 @@ export default function AudiencePage() {
     setIsDeleting(true)
     try {
       await api.delete(selectedId)
-      showToast("Success", "Audience type deleted", "success")
+      showToast(t("common.success"), t("audience.audienceDeleted"), "success")
       fetchAudiences()
     } catch {
-      showToast("Error", "Failed to delete audience type", "error")
+      showToast(t("common.error"), t("audience.failedToDelete"), "error")
     } finally {
       setSelectedId(null)
       setIsDeleting(false)
@@ -72,10 +74,11 @@ export default function AudiencePage() {
 
       await api.update(id, updatedAudience)
 
-      showToast("Success", "Audience deactivated", "success")
+      const message = currentAudience.active ? t("audience.audienceDeactivated") : t("audience.audienceCreated")
+      showToast(t("common.success"), message, "success")
       fetchAudiences()
     } catch (err) {
-      showToast("Error", "Failed to deactivate audience", "error")
+      showToast(t("common.error"), t("audience.failedToDeactivate"), "error")
     }
   }
 
@@ -87,13 +90,13 @@ export default function AudiencePage() {
       <Toaster ref={toasterRef} />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Audiences</h1>
-          <p className="text-muted-foreground">Manage audiences</p>
+          <h1 className="text-2xl font-semibold">{t("audience.title")}</h1>
+          <p className="text-muted-foreground">{t("audience.description")}</p>
         </div>
         <Link href={`/${env}/emails/audience/creation`}>
           <Button>
             <IconPlus className="w-4 h-4 mr-2" />
-            Add Audience
+            {t("audience.addAudience")}
           </Button>
         </Link>
       </div>
@@ -102,11 +105,11 @@ export default function AudiencePage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Local</TableHead>
-              <TableHead>Email Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("common.name")}</TableHead>
+              <TableHead>{t("audience.local")}</TableHead>
+              <TableHead>{t("audience.emailType")}</TableHead>
+              <TableHead>{t("audience.status")}</TableHead>
+              <TableHead className="text-right">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -131,12 +134,12 @@ export default function AudiencePage() {
                     {audience.active ? (
                       <Badge variant="outline" className="bg-green-100 text-green-700">
                         <ShieldCheck className="w-3.5 h-3.5 mr-1" />
-                        Active
+                        {t("common.active")}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="bg-red-100 text-red-700">
                         <ShieldX className="w-3.5 h-3.5 mr-1" />
-                        Inactive
+                        {t("common.inactive")}
                       </Badge>
                     )}
                   </TableCell>
@@ -151,7 +154,7 @@ export default function AudiencePage() {
                       <IconTrash className="h-4 w-4" />
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => handleDeactivate(audience.id)}>
-                      {audience.active ? "Deactivate" : "Activate"}
+                      {audience.active ? t("audience.deactivate") : t("audience.activate")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -159,7 +162,7 @@ export default function AudiencePage() {
             ) : (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-10">
-                  No audiences found.
+                  {t("audience.noAudiencesFound")}
                 </TableCell>
               </TableRow>
             )}
@@ -172,8 +175,8 @@ export default function AudiencePage() {
         onClose={() => setSelectedId(null)}
         onConfirm={handleConfirmDelete}
         loading={isDeleting}
-        title="Delete Audience Type"
-        description="Are you sure you want to delete this audience type? This action cannot be undone"
+        title={t("audience.deleteAudienceType")}
+        description={t("audience.deleteConfirmation")}
       />
     </div>
   )

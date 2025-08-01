@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { AudienceApi } from "@/lib/api/audience"
 import { AudienceTypesApi } from "@/lib/api/audience-types"
 import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -23,6 +24,7 @@ import Toaster from "@/components/toast"
 
 export default function CreateAudiencePage() {
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   const router = useRouter()
   const { toasterRef, showToast } = useToast();
 
@@ -48,18 +50,18 @@ export default function CreateAudiencePage() {
         const result = await audienceTypesApi.list({ limit: 10000 })
         setAudienceTypes(result.results)
       } catch {
-        showToast("Error", "Failed to load audience types", "error")
+        showToast(t("common.error"), t("audienceTypes.failedToFetch"), "error")
       }
     }
     fetchAudienceTypes()
-  }, [audienceTypesApi])
+  }, [audienceTypesApi, showToast, t])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
-    if (!name.trim()) newErrors.name = "Name is required"
-    if (!audienceTypeId.trim()) newErrors.audienceTypeId = "Audience Type is required"
-    if (!sql.trim()) newErrors.sql = "SQL is required"
+    if (!name.trim()) newErrors.name = t("validation.nameRequired")
+    if (!audienceTypeId.trim()) newErrors.audienceTypeId = t("validation.audienceTypeRequired")
+    if (!sql.trim()) newErrors.sql = t("validation.sqlRequired")
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -70,7 +72,7 @@ export default function CreateAudiencePage() {
 
     if (!validateForm()) {
       const errorFields = Object.values(errors).join(", ");
-      showToast("Error", `Please fix the following fields: ${errorFields}`, "error");
+      showToast(t("common.error"), t("forms.pleaseFixFields") + ": " + errorFields, "error");
 
       return
     }
@@ -78,12 +80,10 @@ export default function CreateAudiencePage() {
     setIsSubmitting(true)
     try {
       await api.create({ name, local, definition, audienceTypeId, emailType, sql, active, user: "system" })
-      console.log("Audience created successfully")
-      showToast("Success", "Audience created", "success")
+      showToast(t("common.success"), t("audience.audienceCreated"), "success")
       router.push(`/${env}/emails/audience`)
     } catch (err) {
-      console.error("Failed to create audience:", err)
-      showToast("Error", "Failed to create audience", "error")
+      showToast(t("common.error"), t("audience.failedToCreate"), "error")
     } finally {
       setIsSubmitting(false)
     }
@@ -92,13 +92,13 @@ export default function CreateAudiencePage() {
   return (
     <div className="px-6 pt-8">
       <Toaster ref={toasterRef} />
-      <h1 className="text-2xl font-semibold">Create Audience</h1>
-      <p className="text-muted-foreground">Add a new audience</p>
+      <h1 className="text-2xl font-semibold">{t("audience.createAudience")}</h1>
+      <p className="text-muted-foreground">{t("audience.addAudience")}</p>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Name */}
         <div>
           <Label htmlFor="name" className={`mb-2 mt-4 ${errors.name ? 'text-destructive' : ''}`}>
-            Name *
+            {t("common.name")} *
           </Label>
           <Input
             id="name"
@@ -108,15 +108,16 @@ export default function CreateAudiencePage() {
               setName(e.target.value)
               if (errors.name) setErrors((prev) => ({ ...prev, name: "" }))
             }}
+            placeholder={t("audience.enterName")}
           />
         </div>
 
         {/* Local */}
         <div>
-          <Label className={`mb-2 mt-4 ${errors.local ? 'text-destructive' : ''}`}>Local *</Label>
+          <Label className={`mb-2 mt-4 ${errors.local ? 'text-destructive' : ''}`}>{t("audience.local")} *</Label>
           <Select value={local} onValueChange={(value) => setLocal(value as LocaleCode)}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Local" />
+              <SelectValue placeholder={t("audience.selectLocal")} />
             </SelectTrigger>
             <SelectContent>
               {LOCALES.map((loc) => (
@@ -131,11 +132,11 @@ export default function CreateAudiencePage() {
         {/* Audience Type Dropdown */}
         <div>
           <Label htmlFor="audience_type" className={`mb-2 mt-4 ${errors.audienceTypeId ? 'text-destructive' : ''}`}>
-            Audience Type *
+            {t("audience.audienceType")} *
           </Label>
           <Select value={audienceTypeId} onValueChange={(value) => setAudienceTypeId(value)}>
             <SelectTrigger className={`w-full ${errors.audienceTypeId ? 'border-destructive' : ''}`}>
-              <SelectValue placeholder="Select Audience Type" />
+              <SelectValue placeholder={t("audience.selectAudienceType")} />
             </SelectTrigger>
             <SelectContent>
               {audienceTypes.map((type) => (
@@ -149,15 +150,15 @@ export default function CreateAudiencePage() {
 
         {/* Email Type */}
         <div>
-          <Label className="mb-2 mt-4">Email Type *</Label>
+          <Label className="mb-2 mt-4">{t("audience.emailType")} *</Label>
           <Select value={emailType} onValueChange={(value) => setEmailType(value as typeof emailType)}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Email Type" />
+              <SelectValue placeholder={t("audience.selectEmailType")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="campaign">Campaign</SelectItem>
-              <SelectItem value="automation">Automation</SelectItem>
-              <SelectItem value="functional">Functional</SelectItem>
+              <SelectItem value="campaign">{t("senders.campaign")}</SelectItem>
+              <SelectItem value="automation">{t("senders.automation")}</SelectItem>
+              <SelectItem value="functional">{t("senders.functional")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -165,24 +166,24 @@ export default function CreateAudiencePage() {
         {/* SQL */}
         <div>
           <Label htmlFor="sql" className={`mb-2 mt-4 ${errors.sql ? 'text-destructive' : ''}`}>
-            SQL *
+            {t("audience.sql")} *
           </Label>
           <Textarea
             id="sql"
             value={sql}
             onChange={(e) => setSql(e.target.value)}
             className={`w-full ${errors.sql ? 'border-destructive' : ''} min-h-[100px]`}
-            placeholder="Enter SQL query"
+            placeholder={t("audience.enterSQLQuery")}
           />
         </div>
 
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-2">
           <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create"}
+            {isSubmitting ? t("audience.creating") : t("common.create")}
           </Button>
         </div>
       </form>

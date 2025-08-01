@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback, useMemo } from "react"
 import { IconPlus, IconMail, IconEdit, IconTrash, IconCopy } from "@tabler/icons-react"
 
 import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
 import { CampaignApi } from "@/lib/api/campaign"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -17,6 +18,7 @@ import Toaster from "@/components/toast"
 
 export default function CampaignPage() {
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   const api = useMemo(() => new CampaignApi(env), [env])
 
   const { toasterRef, showToast } = useToast();
@@ -33,11 +35,11 @@ export default function CampaignPage() {
       const result = await api.list({ limit: 50 })
       setData(result.results)
     } catch {
-      setError("Failed to fetch campaigns")
+      setError(t("campaigns.failedToFetch"))
     } finally {
       setLoading(false)
     }
-  }, [api])
+  }, [api, t])
 
   useEffect(() => {
     fetchCampaigns()
@@ -49,10 +51,10 @@ export default function CampaignPage() {
     setIsDeleting(true)
     try {
       await api.delete(selectedId)
-      showToast("Success", "Campaign deleted", "success")
+      showToast(t("common.success"), t("campaigns.campaignDeleted"), "success")
       fetchCampaigns()
     } catch {
-      showToast("Error", "Failed to delete campaign", "error")
+      showToast(t("common.error"), t("campaigns.failedToDelete"), "error")
     } finally {
       setSelectedId(null)
       setIsDeleting(false)
@@ -62,10 +64,10 @@ export default function CampaignPage() {
   const handleDuplicate = async (id: string, name: string) => {
     try {
       await api.duplicate(id)
-      showToast("Success", `Campaign "${name}" duplicated`, "success")
+      showToast(t("common.success"), t("campaigns.campaignDuplicated") + ` "${name}"`, "success")
       fetchCampaigns()
     } catch {
-      showToast("Error", "Failed to duplicate campaign", "error")
+      showToast(t("common.error"), t("campaigns.failedToDuplicate"), "error")
     }
   }
 
@@ -74,31 +76,31 @@ export default function CampaignPage() {
       case 'sent':
         return (
           <Badge variant="outline" className="bg-green-100 text-green-700">
-            Sent
+            {t("campaigns.sent")}
           </Badge>
         )
       case 'sending':
         return (
           <Badge variant="outline" className="bg-blue-100 text-blue-700">
-            Sending
+            {t("campaigns.sending")}
           </Badge>
         )
       case 'planned':
         return (
           <Badge variant="outline" className="bg-purple-100 text-purple-700">
-            Planned
+            {t("campaigns.planned")}
           </Badge>
         )
       case 'draft':
         return (
           <Badge variant="outline" className="bg-yellow-100 text-yellow-700">
-            Draft
+            {t("templates.draft")}
           </Badge>
         )
       case 'archived':
         return (
           <Badge variant="outline" className="bg-gray-100 text-gray-700">
-            Archived
+            {t("templates.archived")}
           </Badge>
         )
       default:
@@ -118,13 +120,13 @@ export default function CampaignPage() {
       <Toaster ref={toasterRef} />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Campaigns</h1>
-          <p className="text-muted-foreground">Manage email campaigns</p>
+          <h1 className="text-2xl font-semibold">{t("campaigns.title")}</h1>
+          <p className="text-muted-foreground">{t("campaigns.description")}</p>
         </div>
         <Link href={`/${env}/emails/campaign/creation`}>
           <Button>
             <IconPlus className="w-4 h-4 mr-2" />
-            Add Campaign
+            {t("campaigns.addCampaign")}
           </Button>
         </Link>
       </div>
@@ -133,11 +135,11 @@ export default function CampaignPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Local</TableHead>
-              <TableHead>Subject</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("common.name")}</TableHead>
+              <TableHead>{t("audience.local")}</TableHead>
+              <TableHead>{t("campaigns.subject")}</TableHead>
+              <TableHead>{t("audience.status")}</TableHead>
+              <TableHead className="text-right">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -184,7 +186,7 @@ export default function CampaignPage() {
             ) : (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-10">
-                  No campaigns found.
+                  {t("campaigns.noCampaignsFound")}
                 </TableCell>
               </TableRow>
             )}
@@ -197,8 +199,8 @@ export default function CampaignPage() {
         onClose={() => setSelectedId(null)}
         onConfirm={handleConfirmDelete}
         loading={isDeleting}
-        title="Confirm Deletion"
-        description="Are you sure you want to delete this campaign? This action cannot be undone."
+        title={t("campaigns.title")}
+        description={t("audience.deleteConfirmation")}
       />
     </div>
   )

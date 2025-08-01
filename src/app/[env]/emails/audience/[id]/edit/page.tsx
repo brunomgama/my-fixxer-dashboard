@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation"
 import { AudienceApi } from "@/lib/api/audience"
 import { AudienceTypesApi } from "@/lib/api/audience-types"
 import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -29,6 +30,7 @@ type FormData = {
 export default function EditAudiencePage() {
   const { id } = useParams()
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   const router = useRouter()
 
   const { toasterRef, showToast } = useToast();
@@ -67,7 +69,7 @@ export default function EditAudiencePage() {
         })
         setAudienceTypes(typesRes.results)
       } catch {
-        showToast("Error", "Failed to load audience data", "error");
+        showToast(t("common.error"), t("audience.failedToLoad"), "error");
         router.back()
       } finally {
         setLoading(false)
@@ -75,13 +77,13 @@ export default function EditAudiencePage() {
     }
   
     fetchInitialData()
-  }, [api, audienceTypesApi, id, router])
+  }, [api, audienceTypesApi, id, router, showToast, t])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
-    if (!formData.name.trim()) newErrors.name = "Name is required"
-    if (!formData.audienceTypeId.trim()) newErrors.audienceTypeId = "Audience Type is required"
-    if (!formData.sql.trim()) newErrors.sql = "SQL is required"
+    if (!formData.name.trim()) newErrors.name = t("validation.nameRequired")
+    if (!formData.audienceTypeId.trim()) newErrors.audienceTypeId = t("validation.audienceTypeRequired")
+    if (!formData.sql.trim()) newErrors.sql = t("validation.sqlRequired")
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -91,7 +93,7 @@ export default function EditAudiencePage() {
 
     if (!validateForm()) {
       const errorFields = Object.values(errors).join(", ")
-      showToast("Error", `Please fix the following fields: ${errorFields}`, "error");
+      showToast(t("common.error"), t("forms.pleaseFixFields") + ": " + errorFields, "error");
       return
     }
 
@@ -102,11 +104,11 @@ export default function EditAudiencePage() {
         active: true,
         user: "system",
       })
-      showToast("Success", "Audience updated", "success");
+      showToast(t("common.success"), t("audience.audienceUpdated"), "success");
       router.push(`/${env}/emails/audience`)
       router.refresh()
     } catch {
-      showToast("Error", "Failed to update audience", "error");
+      showToast(t("common.error"), t("audience.failedToUpdate"), "error");
     } finally {
       setIsSubmitting(false)
     }
@@ -117,29 +119,29 @@ export default function EditAudiencePage() {
   return (
     <div className="px-6 pt-8">
       <Toaster ref={toasterRef} />
-      <h1 className="text-2xl font-semibold">Edit Audience</h1>
-      <p className="text-muted-foreground">Update existing audience</p>
+      <h1 className="text-2xl font-semibold">{t("audience.editAudience")}</h1>
+      <p className="text-muted-foreground">{t("audience.updateExistingAudience")}</p>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Name */}
         <div>
           <Label htmlFor="name" className={`mb-2 mt-4 ${errors.name ? 'text-destructive' : ''}`}>
-            Name *
+            {t("common.name")} *
           </Label>
           <Input id="name" className={`w-full ${errors.name ? 'border-destructive' : ''}`} value={formData.name}
             onChange={(e) => {
               setFormData((prev) => ({ ...prev, name: e.target.value }))
               if (errors.name) setErrors((prev) => ({ ...prev, name: "" }))
             }}
-            placeholder="Enter Name"/>
+            placeholder={t("audience.enterName")}/>
           {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
         </div>
 
         {/* Local */}
         <div>
-          <Label className={`mb-2 mt-4 ${errors.local ? 'text-destructive' : ''}`}>Local *</Label>
+          <Label className={`mb-2 mt-4 ${errors.local ? 'text-destructive' : ''}`}>{t("audience.local")} *</Label>
           <Select value={formData.local} onValueChange={(value) => setFormData((prev) => ({ ...prev, local: value as LocaleCode }))}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Local" />
+              <SelectValue placeholder={t("audience.selectLocal")} />
             </SelectTrigger>
             <SelectContent>
               {LOCALES.map((loc) => (
@@ -154,11 +156,11 @@ export default function EditAudiencePage() {
         {/* Audience Type */}
         <div>
           <Label className={`mb-2 mt-4 ${errors.audienceTypeId ? 'text-destructive' : ''}`}>
-            Audience Type *
+            {t("audience.audienceType")} *
           </Label>
           <Select value={formData.audienceTypeId} onValueChange={(value) => setFormData((prev) => ({ ...prev, audienceTypeId: value }))} >
             <SelectTrigger className={`w-full ${errors.audienceTypeId ? 'border-destructive' : ''}`}>
-              <SelectValue placeholder="Select Audience Type" />
+              <SelectValue placeholder={t("audience.selectAudienceType")} />
             </SelectTrigger>
             <SelectContent>
               {audienceTypes.map((type) => (
@@ -173,15 +175,15 @@ export default function EditAudiencePage() {
 
         {/* Email Type */}
         <div>
-          <Label className="mb-2 mt-4">Email Type *</Label>
+          <Label className="mb-2 mt-4">{t("audience.emailType")} *</Label>
           <Select value={formData.emailType} onValueChange={(value) => setFormData((prev) => ({ ...prev, emailType: value as "campaign" | "automation" | "functional" }))}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Email Type" />
+              <SelectValue placeholder={t("audience.selectEmailType")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="campaign">Campaign</SelectItem>
-              <SelectItem value="automation">Automation</SelectItem>
-              <SelectItem value="functional">Functional</SelectItem>
+              <SelectItem value="campaign">{t("senders.campaign")}</SelectItem>
+              <SelectItem value="automation">{t("senders.automation")}</SelectItem>
+              <SelectItem value="functional">{t("senders.functional")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -192,7 +194,7 @@ export default function EditAudiencePage() {
             <div className="flex w-full items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="bg-primary/10 text-primary rounded px-2 py-1 text-xs font-medium">
-                  SQL
+                  {t("audience.sql")}
                 </div>
               </div>
               <Button
@@ -210,7 +212,7 @@ export default function EditAudiencePage() {
 
           {editing ? (
             <div className="px-4 py-4">
-              <Textarea id="sql" value={formData.sql} onChange={(e) => setFormData((prev) => ({ ...prev, sql: e.target.value }))} className="w-full min-h-[100px]" placeholder="Enter SQL query" />
+              <Textarea id="sql" value={formData.sql} onChange={(e) => setFormData((prev) => ({ ...prev, sql: e.target.value }))} className="w-full min-h-[100px]" placeholder={t("audience.enterSQLQuery")} />
               {errors.sql && (
                 <p className="text-sm text-destructive mt-2">{errors.sql}</p>
               )}
@@ -224,10 +226,10 @@ export default function EditAudiencePage() {
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-2">
           <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Saving..." : "Save"}
+            {isSubmitting ? t("audience.saving") : t("common.save")}
           </Button>
         </div>
       </form>

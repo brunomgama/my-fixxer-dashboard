@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation"
 import { TemplateApi } from "@/lib/api/template"
 import { AudienceTypesApi } from "@/lib/api/audience-types"
 import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -30,6 +31,7 @@ type FormData = {
 export default function EditTemplatePage() {
   const { id } = useParams()
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   const router = useRouter()
 
   const { toasterRef, showToast } = useToast();
@@ -73,7 +75,7 @@ export default function EditTemplatePage() {
         })
         setAudienceTypes(typesRes.results)
       } catch {
-        showToast("Error", "Failed to load template data", "error");
+        showToast(t("common.error"), t("templates.failedToLoad"), "error");
         router.back()
       } finally {
         setLoading(false)
@@ -81,14 +83,14 @@ export default function EditTemplatePage() {
     }
   
     fetchInitialData()
-  }, [api, audienceTypesApi, id, router])
+  }, [api, audienceTypesApi, id, router, showToast, t])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
-    if (!formData.name.trim()) newErrors.name = "Name is required"
-    if (!formData.audienceTypeId.trim()) newErrors.audienceTypeId = "Audience Type is required"
-    if (!formData.header.trim()) newErrors.header = "Header is required"
-    if (!formData.footer.trim()) newErrors.footer = "Footer is required"
+    if (!formData.name.trim()) newErrors.name = t("validation.nameRequired")
+    if (!formData.audienceTypeId.trim()) newErrors.audienceTypeId = t("validation.audienceTypeRequired")
+    if (!formData.header.trim()) newErrors.header = t("templates.headerRequired")
+    if (!formData.footer.trim()) newErrors.footer = t("templates.footerRequired")
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -98,7 +100,7 @@ export default function EditTemplatePage() {
 
     if (!validateForm()) {
       const errorFields = Object.values(errors).join(", ")
-      showToast("Error", `Please fix the following fields: ${errorFields}`, "error");
+      showToast(t("common.error"), t("forms.pleaseFixFields") + ": " + errorFields, "error");
       return
     }
 
@@ -109,11 +111,11 @@ export default function EditTemplatePage() {
         unsubscribe: formData.unsubscribe || undefined,
         user: "system",
       })
-      showToast("Success", "Template updated", "success");
+      showToast(t("common.success"), t("templates.templateUpdated"), "success");
       router.push(`/${env}/emails/template`)
       router.refresh()
     } catch {
-      showToast("Error", "Failed to update template", "error");
+      showToast(t("common.error"), t("templates.failedToUpdate"), "error");
     } finally {
       setIsSubmitting(false)
     }
@@ -124,29 +126,29 @@ export default function EditTemplatePage() {
   return (
     <div className="px-6 pt-8">
       <Toaster ref={toasterRef} />
-      <h1 className="text-2xl font-semibold">Edit Template</h1>
-      <p className="text-muted-foreground">Update existing template</p>
+      <h1 className="text-2xl font-semibold">{t("templates.editTemplate")}</h1>
+      <p className="text-muted-foreground">{t("templates.updateExistingTemplate")}</p>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Name */}
         <div>
           <Label htmlFor="name" className={`mb-2 mt-4 ${errors.name ? 'text-destructive' : ''}`}>
-            Name *
+            {t("common.name")} *
           </Label>
           <Input id="name" className={`w-full ${errors.name ? 'border-destructive' : ''}`} value={formData.name}
             onChange={(e) => {
               setFormData((prev) => ({ ...prev, name: e.target.value }))
               if (errors.name) setErrors((prev) => ({ ...prev, name: "" }))
             }}
-            placeholder="Enter Name"/>
+            placeholder={t("templates.enterTemplateName")}/>
           {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
         </div>
 
         {/* Local */}
         <div>
-          <Label className={`mb-2 mt-4 ${errors.local ? 'text-destructive' : ''}`}>Local *</Label>
+          <Label className={`mb-2 mt-4 ${errors.local ? 'text-destructive' : ''}`}>{t("audience.local")} *</Label>
           <Select value={formData.local} onValueChange={(value) => setFormData((prev) => ({ ...prev, local: value as LocaleCode }))}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Local" />
+              <SelectValue placeholder={t("audience.selectLocal")} />
             </SelectTrigger>
             <SelectContent>
               {LOCALES.map((loc) => (
@@ -161,11 +163,11 @@ export default function EditTemplatePage() {
         {/* Audience Type */}
         <div>
           <Label className={`mb-2 mt-4 ${errors.audienceTypeId ? 'text-destructive' : ''}`}>
-            Audience Type *
+            {t("audience.audienceType")} *
           </Label>
           <Select value={formData.audienceTypeId} onValueChange={(value) => setFormData((prev) => ({ ...prev, audienceTypeId: value }))} >
             <SelectTrigger className={`w-full ${errors.audienceTypeId ? 'border-destructive' : ''}`}>
-              <SelectValue placeholder="Select Audience Type" />
+              <SelectValue placeholder={t("audience.selectAudienceType")} />
             </SelectTrigger>
             <SelectContent>
               {audienceTypes.map((type) => (
@@ -180,45 +182,30 @@ export default function EditTemplatePage() {
 
         {/* Email Type */}
         <div>
-          <Label className="mb-2 mt-4">Email Type *</Label>
+          <Label className="mb-2 mt-4">{t("audience.emailType")} *</Label>
           <Select value={formData.emailType} onValueChange={(value) => setFormData((prev) => ({ ...prev, emailType: value as "campaign" | "automation" | "functional" }))}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Email Type" />
+              <SelectValue placeholder={t("audience.selectEmailType")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="campaign">Campaign</SelectItem>
-              <SelectItem value="automation">Automation</SelectItem>
-              <SelectItem value="functional">Functional</SelectItem>
+              <SelectItem value="campaign">{t("senders.campaign")}</SelectItem>
+              <SelectItem value="automation">{t("senders.automation")}</SelectItem>
+              <SelectItem value="functional">{t("senders.functional")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {/* Status */}
-        {/* <div>
-          <Label className="mb-2 mt-4">Status *</Label>
-          <Select value={formData.status} onValueChange={(value) => setFormData((prev) => ({ ...prev, status: value as "draft" | "published" | "archived" }))}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="published">Published</SelectItem>
-              <SelectItem value="archived">Archived</SelectItem>
-            </SelectContent>
-          </Select>
-        </div> */}
-
         {/* Header */}
         <div>
           <Label htmlFor="header" className={`mb-2 mt-4 ${errors.header ? 'text-destructive' : ''}`}>
-            Header *
+            {t("templates.header")} *
           </Label>
           <Textarea 
             id="header" 
             value={formData.header} 
             onChange={(e) => setFormData((prev) => ({ ...prev, header: e.target.value }))} 
             className={`w-full ${errors.header ? 'border-destructive' : ''} min-h-[100px]`} 
-            placeholder="Enter header content" 
+            placeholder={t("templates.enterTemplateHeader")} 
           />
           {errors.header && <p className="text-sm text-destructive">{errors.header}</p>}
         </div>
@@ -226,14 +213,14 @@ export default function EditTemplatePage() {
         {/* Footer */}
         <div>
           <Label htmlFor="footer" className={`mb-2 mt-4 ${errors.footer ? 'text-destructive' : ''}`}>
-            Footer *
+            {t("templates.footer")} *
           </Label>
           <Textarea 
             id="footer" 
             value={formData.footer} 
             onChange={(e) => setFormData((prev) => ({ ...prev, footer: e.target.value }))} 
             className={`w-full ${errors.footer ? 'border-destructive' : ''} min-h-[100px]`} 
-            placeholder="Enter footer content" 
+            placeholder={t("templates.enterTemplateFooter")} 
           />
           {errors.footer && <p className="text-sm text-destructive">{errors.footer}</p>}
         </div>
@@ -241,24 +228,24 @@ export default function EditTemplatePage() {
         {/* Unsubscribe */}
         <div>
           <Label htmlFor="unsubscribe" className="mb-2 mt-4">
-            Unsubscribe
+            {t("navigation.unsubscribe")}
           </Label>
           <Textarea 
             id="unsubscribe" 
             value={formData.unsubscribe} 
             onChange={(e) => setFormData((prev) => ({ ...prev, unsubscribe: e.target.value }))} 
             className="w-full min-h-[100px]" 
-            placeholder="Enter unsubscribe content (optional)" 
+            placeholder={t("templates.enterUnsubscribeContent")} 
           />
         </div>
 
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-2">
           <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Saving..." : "Save"}
+            {isSubmitting ? t("templates.saving") : t("common.save")}
           </Button>
         </div>
       </form>

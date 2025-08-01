@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -71,6 +72,7 @@ interface CreateModalProps {
 
 function CreateModal({ type, onClose, onCreated }: CreateModalProps) {
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   const { showToast } = useToast()
   
   const senderApi = useMemo(() => new SenderApi(env), [env])
@@ -123,7 +125,7 @@ function CreateModal({ type, onClose, onCreated }: CreateModalProps) {
       
       if (type === 'sender') {
         if (!senderEmail.trim() || senderAlias.length === 0 || senderEmailType.length === 0) {
-          showToast("Error", "Please fill all required fields", "error")
+          showToast(t("common.error"), t("forms.pleaseCompleteAllFields"), "error")
           return
         }
         result = await senderApi.create({
@@ -135,7 +137,7 @@ function CreateModal({ type, onClose, onCreated }: CreateModalProps) {
         })
       } else if (type === 'audience') {
         if (!audienceName.trim() || !audienceTypeId || !audienceSQL.trim()) {
-          showToast("Error", "Please fill all required fields", "error")
+          showToast(t("common.error"), t("forms.pleaseCompleteAllFields"), "error")
           return
         }
         result = await audienceApi.create({
@@ -150,7 +152,7 @@ function CreateModal({ type, onClose, onCreated }: CreateModalProps) {
         })
       } else if (type === 'template') {
         if (!templateName.trim() || !templateAudienceTypeId || !templateHeader.trim() || !templateFooter.trim()) {
-          showToast("Error", "Please fill all required fields", "error")
+          showToast(t("common.error"), t("forms.pleaseCompleteAllFields"), "error")
           return
         }
         result = await templateApi.create({
@@ -165,10 +167,10 @@ function CreateModal({ type, onClose, onCreated }: CreateModalProps) {
         })
       }
       
-      showToast("Success", `${type.charAt(0).toUpperCase() + type.slice(1)} created successfully`, "success")
+      showToast(t("common.success"), t("sendProcess.itemCreatedSuccessfully").replace("{item}", t(`sendProcess.${type}`)), "success")
       onCreated(result)
     } catch (error) {
-      showToast("Error", `Failed to create ${type}`, "error")
+      showToast(t("common.error"), t("sendProcess.failedToCreate").replace("{item}", t(`sendProcess.${type}`)), "error")
     } finally {
       setLoading(false)
     }
@@ -201,9 +203,9 @@ function CreateModal({ type, onClose, onCreated }: CreateModalProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Create New {type.charAt(0).toUpperCase() + type.slice(1)}</CardTitle>
+              <CardTitle>{t("sendProcess.createNewItem").replace("{item}", t(`sendProcess.${type}`))}</CardTitle>
               <CardDescription>
-                Create a new {type} to use in your email process
+                {t("sendProcess.createItemDescription").replace("{item}", t(`sendProcess.${type}`))}
               </CardDescription>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose}>
@@ -215,26 +217,26 @@ function CreateModal({ type, onClose, onCreated }: CreateModalProps) {
           {type === 'sender' && (
             <>
               <div>
-                <Label htmlFor="senderEmail">Email *</Label>
+                <Label htmlFor="senderEmail">{t("common.email")} *</Label>
                 <Input
                   id="senderEmail"
                   type="email"
                   value={senderEmail}
                   onChange={(e) => setSenderEmail(e.target.value)}
-                  placeholder="sender@example.com"
+                  placeholder={t("senders.enterSenderEmail")}
                 />
               </div>
               
               <div>
-                <Label>Aliases *</Label>
+                <Label>{t("sendProcess.aliases")} *</Label>
                 <div className="flex gap-2 mt-2">
                   <Input
                     value={newAlias}
                     onChange={(e) => setNewAlias(e.target.value)}
-                    placeholder="Add alias"
+                    placeholder={t("sendProcess.addAlias")}
                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addAlias())}
                   />
-                  <Button onClick={addAlias} disabled={!newAlias.trim()}>Add</Button>
+                  <Button onClick={addAlias} disabled={!newAlias.trim()}>{t("sendProcess.add")}</Button>
                 </div>
                 {senderAlias.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
@@ -248,7 +250,7 @@ function CreateModal({ type, onClose, onCreated }: CreateModalProps) {
               </div>
               
               <div>
-                <Label>Email Types *</Label>
+                <Label>{t("sendProcess.emailTypes")} *</Label>
                 <div className="flex gap-2 mt-2">
                   {["campaign", "automation", "functional"].map((emailType) => (
                     <Button
@@ -257,7 +259,7 @@ function CreateModal({ type, onClose, onCreated }: CreateModalProps) {
                       variant={senderEmailType.includes(emailType) ? "default" : "outline"}
                       onClick={() => toggleEmailType(emailType)}
                     >
-                      {emailType.charAt(0).toUpperCase() + emailType.slice(1)}
+                      {t(`senders.${emailType}`)}
                     </Button>
                   ))}
                 </div>
@@ -268,17 +270,17 @@ function CreateModal({ type, onClose, onCreated }: CreateModalProps) {
           {type === 'audience' && (
             <>
               <div>
-                <Label htmlFor="audienceName">Name *</Label>
+                <Label htmlFor="audienceName">{t("sendProcess.name")} *</Label>
                 <Input
                   id="audienceName"
                   value={audienceName}
                   onChange={(e) => setAudienceName(e.target.value)}
-                  placeholder="Enter audience name"
+                  placeholder={t("sendProcess.enterName").replace("{item}", t("sendProcess.audience"))}
                 />
               </div>
               
               <div>
-                <Label>Locale *</Label>
+                <Label>{t("sendProcess.locale")} *</Label>
                 <Select value={audienceLocal} onValueChange={(value) => setAudienceLocal(value as LocaleCode)}>
                   <SelectTrigger>
                     <SelectValue />
@@ -294,10 +296,10 @@ function CreateModal({ type, onClose, onCreated }: CreateModalProps) {
               </div>
               
               <div>
-                <Label>Audience Type *</Label>
+                <Label>{t("sendProcess.audienceType")} *</Label>
                 <Select value={audienceTypeId} onValueChange={setAudienceTypeId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select audience type" />
+                    <SelectValue placeholder={t("sendProcess.selectAudienceType")} />
                   </SelectTrigger>
                   <SelectContent>
                     {audienceTypes.map((type) => (
@@ -310,26 +312,26 @@ function CreateModal({ type, onClose, onCreated }: CreateModalProps) {
               </div>
               
               <div>
-                <Label>Email Type *</Label>
+                <Label>{t("audience.emailType")} *</Label>
                 <Select value={audienceEmailType} onValueChange={(value) => setAudienceEmailType(value as typeof audienceEmailType)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="campaign">Campaign</SelectItem>
-                    <SelectItem value="automation">Automation</SelectItem>
-                    <SelectItem value="functional">Functional</SelectItem>
+                    <SelectItem value="campaign">{t("senders.campaign")}</SelectItem>
+                    <SelectItem value="automation">{t("senders.automation")}</SelectItem>
+                    <SelectItem value="functional">{t("senders.functional")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
               <div>
-                <Label htmlFor="audienceSQL">SQL Query *</Label>
+                <Label htmlFor="audienceSQL">{t("sendProcess.sqlQuery")} *</Label>
                 <Textarea
                   id="audienceSQL"
                   value={audienceSQL}
                   onChange={(e) => setAudienceSQL(e.target.value)}
-                  placeholder="SELECT * FROM users WHERE..."
+                  placeholder={t("sendProcess.enterSQLQuery")}
                   className="min-h-[100px] font-mono"
                 />
               </div>
@@ -339,17 +341,17 @@ function CreateModal({ type, onClose, onCreated }: CreateModalProps) {
           {type === 'template' && (
             <>
               <div>
-                <Label htmlFor="templateName">Name *</Label>
+                <Label htmlFor="templateName">{t("sendProcess.name")} *</Label>
                 <Input
                   id="templateName"
                   value={templateName}
                   onChange={(e) => setTemplateName(e.target.value)}
-                  placeholder="Enter template name"
+                  placeholder={t("sendProcess.enterName").replace("{item}", t("sendProcess.template"))}
                 />
               </div>
               
               <div>
-                <Label>Locale *</Label>
+                <Label>{t("sendProcess.locale")} *</Label>
                 <Select value={templateLocal} onValueChange={(value) => setTemplateLocal(value as LocaleCode)}>
                   <SelectTrigger>
                     <SelectValue />
@@ -365,10 +367,10 @@ function CreateModal({ type, onClose, onCreated }: CreateModalProps) {
               </div>
               
               <div>
-                <Label>Audience Type *</Label>
+                <Label>{t("sendProcess.audienceType")} *</Label>
                 <Select value={templateAudienceTypeId} onValueChange={setTemplateAudienceTypeId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select audience type" />
+                    <SelectValue placeholder={t("sendProcess.selectAudienceType")} />
                   </SelectTrigger>
                   <SelectContent>
                     {audienceTypes.map((type) => (
@@ -381,37 +383,37 @@ function CreateModal({ type, onClose, onCreated }: CreateModalProps) {
               </div>
               
               <div>
-                <Label>Email Type *</Label>
+                <Label>{t("audience.emailType")} *</Label>
                 <Select value={templateEmailType} onValueChange={(value) => setTemplateEmailType(value as typeof templateEmailType)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="campaign">Campaign</SelectItem>
-                    <SelectItem value="automation">Automation</SelectItem>
-                    <SelectItem value="functional">Functional</SelectItem>
+                    <SelectItem value="campaign">{t("senders.campaign")}</SelectItem>
+                    <SelectItem value="automation">{t("senders.automation")}</SelectItem>
+                    <SelectItem value="functional">{t("senders.functional")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
               <div>
-                <Label htmlFor="templateHeader">Header *</Label>
+                <Label htmlFor="templateHeader">{t("sendProcess.header")} *</Label>
                 <Textarea
                   id="templateHeader"
                   value={templateHeader}
                   onChange={(e) => setTemplateHeader(e.target.value)}
-                  placeholder="Enter template header"
+                  placeholder={t("sendProcess.enterHeader")}
                   className="min-h-[80px]"
                 />
               </div>
               
               <div>
-                <Label htmlFor="templateFooter">Footer *</Label>
+                <Label htmlFor="templateFooter">{t("sendProcess.footer")} *</Label>
                 <Textarea
                   id="templateFooter"
                   value={templateFooter}
                   onChange={(e) => setTemplateFooter(e.target.value)}
-                  placeholder="Enter template footer"
+                  placeholder={t("sendProcess.enterFooter")}
                   className="min-h-[80px]"
                 />
               </div>
@@ -419,9 +421,9 @@ function CreateModal({ type, onClose, onCreated }: CreateModalProps) {
           )}
           
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
+            <Button variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
             <Button onClick={handleCreate} disabled={loading}>
-              {loading ? "Creating..." : "Create"}
+              {loading ? t("sendProcess.creating") : t("sendProcess.create")}
             </Button>
           </div>
         </CardContent>
@@ -432,6 +434,7 @@ function CreateModal({ type, onClose, onCreated }: CreateModalProps) {
 
 export default function SendEmailProcessPage() {
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   const router = useRouter()
   const { toasterRef, showToast } = useToast()
   
@@ -512,7 +515,7 @@ export default function SendEmailProcessPage() {
         }
       } catch (error) {
         console.error('Preload error:', error)
-        showToast("Error", "Failed to preload data", "error")
+        showToast(t("common.error"), t("sendProcess.failedToPreloadData"), "error")
         setLoadingSenders(false)
         setLoadingAudiences(false)
         setLoadingTemplates(false)
@@ -520,7 +523,7 @@ export default function SendEmailProcessPage() {
     }
     
     preloadData()
-  }, [currentStep, senderApi, audienceApi, templateApi, senders.length, audiences.length, templates.length, showToast])
+  }, [currentStep, senderApi, audienceApi, templateApi, senders.length, audiences.length, templates.length, showToast, t])
   
   // Load data when user navigates to a step (fallback for fast navigation)
   useEffect(() => {
@@ -545,7 +548,7 @@ export default function SendEmailProcessPage() {
           setLoadingTemplates(false)
         }
       } catch (error) {
-        showToast("Error", "Failed to load data", "error")
+        showToast(t("common.error"), t("sendProcess.failedToLoadData"), "error")
         setLoadingSenders(false)
         setLoadingAudiences(false)
         setLoadingTemplates(false)
@@ -553,7 +556,7 @@ export default function SendEmailProcessPage() {
     }
     
     loadCurrentStepData()
-  }, [currentStep, senderApi, audienceApi, templateApi, senders.length, audiences.length, templates.length, loadingSenders, loadingAudiences, loadingTemplates, showToast])
+  }, [currentStep, senderApi, audienceApi, templateApi, senders.length, audiences.length, templates.length, loadingSenders, loadingAudiences, loadingTemplates, showToast, t])
 
   const nextStep = () => {
     const currentIndex = steps.findIndex(step => step.key === currentStep)
@@ -611,7 +614,7 @@ export default function SendEmailProcessPage() {
       
       if (processState.sendImmediately) {
         console.log("🚀 Send email right away for campaign:", campaign.id)
-        showToast("Success", "Email will be sent immediately!", "success")
+        showToast(t("common.success"), t("sendProcess.emailWillBeSent"), "success")
       } else {
         const scheduledDateTime = new Date(`${processState.scheduledDate}T${processState.scheduledTime}`)
         
@@ -624,12 +627,12 @@ export default function SendEmailProcessPage() {
         })
         
         console.log(`📅 Scheduled to ${scheduledDateTime.toLocaleString()} for campaign:`, campaign.id)
-        showToast("Success", `Email scheduled for ${scheduledDateTime.toLocaleString()}`, "success")
+        showToast(t("common.success"), t("sendProcess.emailScheduledFor").replace("{datetime}", scheduledDateTime.toLocaleString()), "success")
       }
       
       setCurrentStep('complete')
     } catch (error) {
-      showToast("Error", "Failed to create campaign", "error")
+      showToast(t("common.error"), t("sendProcess.failedToCreateCampaign"), "error")
     } finally {
       setIsSubmitting(false)
     }
@@ -657,10 +660,10 @@ export default function SendEmailProcessPage() {
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">Send Email Process</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t("sendProcess.title")}</h1>
             <Button variant="outline" onClick={() => router.push(`/${env}`)}>
               <IconX className="w-4 h-4 mr-2" />
-              Cancel
+              {t("common.cancel")}
             </Button>
           </div>
           
@@ -688,7 +691,7 @@ export default function SendEmailProcessPage() {
                     <Icon className="w-4 h-4" />
                   </div>
                   <span className={`text-sm font-medium ${isActive ? 'text-black-600' : isCompleted ? 'text-green-600' : 'text-gray-500'}`}>
-                    {step.title}
+                    {t(`sendProcess.${step.key === 'welcome' ? 'welcome' : step.key === 'sender' ? 'selectSender' : step.key === 'audience' ? 'selectAudience' : step.key === 'template' ? 'selectTemplate' : step.key === 'campaign' ? 'campaignDetails' : step.key === 'schedule' ? 'schedule' : 'complete'}`)}
                   </span>
                 </div>
               )
@@ -702,19 +705,18 @@ export default function SendEmailProcessPage() {
         {currentStep === 'welcome' && (
           <Card className="text-center">
             <CardHeader>
-              <CardTitle className="text-3xl">Welcome to Email Send Process</CardTitle>
+              <CardTitle className="text-3xl">{t("sendProcess.welcomeTitle")}</CardTitle>
               <CardDescription className="text-lg">
-                We'll guide you through creating and sending your email campaign step by step.
-                You can create new senders, audiences, and templates along the way.
+                {t("sendProcess.welcomeDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-center gap-4">
                 <Button variant="outline" onClick={() => router.push(`/${env}`)}>
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
                 <Button onClick={nextStep} size="lg">
-                  Continue
+                  {t("sendProcess.continue")}
                   <IconChevronRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
@@ -734,18 +736,18 @@ export default function SendEmailProcessPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <IconMail className="w-6 h-6 mr-2" />
-                    Select Sender
+                    {t("sendProcess.selectSender")}
                   </CardTitle>
                   <CardDescription>
-                    Choose who will send the email or create a new sender
+                    {t("sendProcess.chooseWhoWillSend")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-medium">Available Senders</h3>
+                    <h3 className="text-lg font-medium">{t("sendProcess.availableSenders")}</h3>
                     <Button variant="outline" onClick={() => setShowCreateModal('sender')}>
                       <IconPlus className="w-4 h-4 mr-2" />
-                      Create New Sender
+                      {t("sendProcess.createNewSender")}
                     </Button>
                   </div>
                   
@@ -768,12 +770,12 @@ export default function SendEmailProcessPage() {
                           <div className="flex items-center justify-between mb-2">
                             <h4 className="font-medium">{sender.email}</h4>
                             <Badge variant={sender.active ? "default" : "secondary"}>
-                              {sender.active ? "Active" : "Inactive"}
+                              {sender.active ? t("sendProcess.active") : t("sendProcess.inactive")}
                             </Badge>
                           </div>
                           <div className="text-sm text-gray-600">
-                            <div>Aliases: {sender.alias.join(", ")}</div>
-                            <div>Types: {sender.emailType.join(", ")}</div>
+                            <div>{t("sendProcess.aliases")}: {sender.alias.join(", ")}</div>
+                            <div>{t("sendProcess.types")}: {sender.emailType.join(", ")}</div>
                           </div>
                         </CardContent>
                       </Card>
@@ -782,13 +784,13 @@ export default function SendEmailProcessPage() {
                   
                   {processState.selectedSender && (
                     <div>
-                      <Label>Select Sender Alias *</Label>
+                      <Label>{t("sendProcess.selectSenderAlias")} *</Label>
                       <Select 
                         value={processState.selectedSenderAlias} 
                         onValueChange={(value) => setProcessState(prev => ({ ...prev, selectedSenderAlias: value }))}
                       >
                         <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Select an alias" />
+                          <SelectValue placeholder={t("sendProcess.selectAnAlias")} />
                         </SelectTrigger>
                         <SelectContent>
                           {processState.selectedSender.alias.map((alias) => (
@@ -818,18 +820,18 @@ export default function SendEmailProcessPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <IconUsers className="w-6 h-6 mr-2" />
-                    Select Audience
+                    {t("sendProcess.selectAudience")}
                   </CardTitle>
                   <CardDescription>
-                    Choose your target audience or create a new one
+                    {t("sendProcess.chooseTargetAudience")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-medium">Available Audiences</h3>
+                    <h3 className="text-lg font-medium">{t("sendProcess.availableAudiences")}</h3>
                     <Button variant="outline" onClick={() => setShowCreateModal('audience')}>
                       <IconPlus className="w-4 h-4 mr-2" />
-                      Create New Audience
+                      {t("sendProcess.createNewAudience")}
                     </Button>
                   </div>
                   
@@ -848,12 +850,12 @@ export default function SendEmailProcessPage() {
                           <div className="flex items-center justify-between mb-2">
                             <h4 className="font-medium">{audience.name}</h4>
                             <Badge variant="outline">
-                              {audience.emailType}
+                              {t(`senders.${audience.emailType}`)}
                             </Badge>
                           </div>
                           <div className="text-sm text-gray-600">
-                            <div>Locale: {audience.local}</div>
-                            <div className="truncate">Definition: {audience.definition}</div>
+                            <div>{t("sendProcess.locale")}: {audience.local}</div>
+                            <div className="truncate">{t("sendProcess.definition")}: {audience.definition}</div>
                           </div>
                         </CardContent>
                       </Card>
@@ -877,18 +879,18 @@ export default function SendEmailProcessPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <IconTemplate className="w-6 h-6 mr-2" />
-                    Select Template
+                    {t("sendProcess.selectTemplate")}
                   </CardTitle>
                   <CardDescription>
-                    Choose an email template or create a new one
+                    {t("sendProcess.chooseEmailTemplate")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-medium">Available Templates</h3>
+                    <h3 className="text-lg font-medium">{t("sendProcess.availableTemplates")}</h3>
                     <Button variant="outline" onClick={() => setShowCreateModal('template')}>
                       <IconPlus className="w-4 h-4 mr-2" />
-                      Create New Template
+                      {t("sendProcess.createNewTemplate")}
                     </Button>
                   </div>
                   
@@ -907,12 +909,12 @@ export default function SendEmailProcessPage() {
                           <div className="flex items-center justify-between mb-2">
                             <h4 className="font-medium">{template.name}</h4>
                             <Badge variant="outline">
-                              {template.emailType}
+                              {t(`senders.${template.emailType}`)}
                             </Badge>
                           </div>
                           <div className="text-sm text-gray-600">
-                            <div>Locale: {template.local}</div>
-                            <div>Status: {template.status}</div>
+                            <div>{t("sendProcess.locale")}: {template.local}</div>
+                            <div>{t("sendProcess.status")}: {t(`templates.${template.status}`)}</div>
                           </div>
                         </CardContent>
                       </Card>
@@ -930,26 +932,26 @@ export default function SendEmailProcessPage() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <IconSend className="w-6 h-6 mr-2" />
-                Create Campaign
+                {t("sendProcess.createCampaign")}
               </CardTitle>
               <CardDescription>
-                Write your email subject and content
+                {t("sendProcess.writeEmailContent")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label htmlFor="campaignName">Campaign Name *</Label>
+                <Label htmlFor="campaignName">{t("sendProcess.campaignName")} *</Label>
                 <Input
                   id="campaignName"
                   value={processState.campaignName}
                   onChange={(e) => setProcessState(prev => ({ ...prev, campaignName: e.target.value }))}
-                  placeholder="Enter campaign name"
+                  placeholder={t("sendProcess.enterCampaignName")}
                   className="mt-2"
                 />
               </div>
               
               <div>
-                <Label>Locale *</Label>
+                <Label>{t("sendProcess.locale")} *</Label>
                 <Select 
                   value={processState.campaignLocal} 
                   onValueChange={(value) => setProcessState(prev => ({ ...prev, campaignLocal: value as LocaleCode }))}
@@ -968,34 +970,34 @@ export default function SendEmailProcessPage() {
               </div>
               
               <div>
-                <Label htmlFor="campaignSubject">Email Subject *</Label>
+                <Label htmlFor="campaignSubject">{t("sendProcess.emailSubject")} *</Label>
                 <Input
                   id="campaignSubject"
                   value={processState.campaignSubject}
                   onChange={(e) => setProcessState(prev => ({ ...prev, campaignSubject: e.target.value }))}
-                  placeholder="Enter email subject"
+                  placeholder={t("sendProcess.enterEmailSubject")}
                   className="mt-2"
                 />
               </div>
               
               <div>
-                <Label htmlFor="campaignContent">Email Content *</Label>
+                <Label htmlFor="campaignContent">{t("sendProcess.emailContent")} *</Label>
                 <Textarea
                   id="campaignContent"
                   value={processState.campaignContent}
                   onChange={(e) => setProcessState(prev => ({ ...prev, campaignContent: e.target.value }))}
-                  placeholder="Enter email content"
+                  placeholder={t("sendProcess.enterEmailContent")}
                   className="mt-2 min-h-[200px]"
                 />
               </div>
               
               {/* Summary */}
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">Campaign Summary</h4>
+                <h4 className="font-medium mb-2">{t("sendProcess.campaignSummary")}</h4>
                 <div className="text-sm space-y-1">
-                  <div><strong>Sender:</strong> {processState.selectedSender?.email} ({processState.selectedSenderAlias})</div>
-                  <div><strong>Audience:</strong> {processState.selectedAudience?.name}</div>
-                  <div><strong>Template:</strong> {processState.selectedTemplate?.name}</div>
+                  <div><strong>{t("sendProcess.sender")}:</strong> {processState.selectedSender?.email} ({processState.selectedSenderAlias})</div>
+                  <div><strong>{t("sendProcess.audience")}:</strong> {processState.selectedAudience?.name}</div>
+                  <div><strong>{t("sendProcess.template")}:</strong> {processState.selectedTemplate?.name}</div>
                 </div>
               </div>
             </CardContent>
@@ -1008,10 +1010,10 @@ export default function SendEmailProcessPage() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <IconClock className="w-6 h-6 mr-2" />
-                Schedule or Send
+                {t("sendProcess.scheduleOrSend")}
               </CardTitle>
               <CardDescription>
-                Choose when to send your email
+                {t("sendProcess.chooseWhenToSend")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -1026,9 +1028,9 @@ export default function SendEmailProcessPage() {
                 >
                   <CardContent className="p-6 text-center">
                     <IconSend className="w-12 h-12 mx-auto mb-4 text-blue-600" />
-                    <h3 className="font-medium mb-2">Send Immediately</h3>
+                    <h3 className="font-medium mb-2">{t("sendProcess.sendImmediately")}</h3>
                     <p className="text-sm text-gray-600">
-                      Your email will be sent right away
+                      {t("sendProcess.sendRightAway")}
                     </p>
                   </CardContent>
                 </Card>
@@ -1043,9 +1045,9 @@ export default function SendEmailProcessPage() {
                 >
                   <CardContent className="p-6 text-center">
                     <IconClock className="w-12 h-12 mx-auto mb-4 text-green-600" />
-                    <h3 className="font-medium mb-2">Schedule for Later</h3>
+                    <h3 className="font-medium mb-2">{t("sendProcess.scheduleForLater")}</h3>
                     <p className="text-sm text-gray-600">
-                      Choose a specific date and time
+                      {t("sendProcess.chooseDateTime")}
                     </p>
                   </CardContent>
                 </Card>
@@ -1054,7 +1056,7 @@ export default function SendEmailProcessPage() {
               {!processState.sendImmediately && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="scheduledDate">Date *</Label>
+                    <Label htmlFor="scheduledDate">{t("sendProcess.date")} *</Label>
                     <Input
                       id="scheduledDate"
                       type="date"
@@ -1065,7 +1067,7 @@ export default function SendEmailProcessPage() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="scheduledTime">Time *</Label>
+                    <Label htmlFor="scheduledTime">{t("sendProcess.time")} *</Label>
                     <Input
                       id="scheduledTime"
                       type="time"
@@ -1086,15 +1088,15 @@ export default function SendEmailProcessPage() {
             <CardHeader>
               <CardTitle className="text-3xl text-green-600">
                 <IconCheck className="w-12 h-12 mx-auto mb-4" />
-                Process Complete!
+                {t("sendProcess.processComplete")}
               </CardTitle>
               <CardDescription className="text-lg">
-                Your email campaign has been created successfully.
+                {t("sendProcess.campaignCreatedSuccessfully")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button onClick={() => router.push(`/${env}`)} size="lg">
-                Return to Dashboard
+                {t("sendProcess.returnToDashboard")}
               </Button>
             </CardContent>
           </Card>
@@ -1105,16 +1107,16 @@ export default function SendEmailProcessPage() {
           <div className="flex items-center justify-between mt-8">
             <Button variant="outline" onClick={prevStep}>
               <IconChevronLeft className="w-4 h-4 mr-2" />
-              Previous
+              {t("sendProcess.previous")}
             </Button>
             
             {currentStep === 'schedule' ? (
               <Button onClick={handleFinish} disabled={!canProceed() || isSubmitting}>
-                {isSubmitting ? "Processing..." : "Finish & Send"}
+                {isSubmitting ? t("sendProcess.processing") : t("sendProcess.finishAndSend")}
               </Button>
             ) : (
               <Button onClick={nextStep} disabled={!canProceed()}>
-                Next
+                {t("sendProcess.next")}
                 <IconChevronRight className="w-4 h-4 ml-2" />
               </Button>
             )}

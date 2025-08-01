@@ -5,6 +5,7 @@ import Link from "next/link"
 import { IconPlus, IconUser, IconEdit, IconTrash } from "@tabler/icons-react"
 
 import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
 import { AudienceTypesApi } from "@/lib/api/audience-types"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -16,6 +17,7 @@ import Toaster from "@/components/toast"
 
 export default function AudienceTypesPage() {
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   const api = useMemo(() => new AudienceTypesApi(env), [env]);
 
   const { toasterRef, showToast } = useToast();
@@ -32,12 +34,12 @@ export default function AudienceTypesPage() {
       const result = await api.list({ limit: 50 });
       setData(result.results);
     } catch {
-      setError("Failed to fetch audience types");
-      showToast("Error", "Failed to fetch audience types", "error");
+      setError(t("audienceTypes.failedToFetch"));
+      showToast(t("common.error"), t("audienceTypes.failedToFetch"), "error");
     } finally {
       setLoading(false);
     }
-  }, [api, showToast]);
+  }, [api, showToast, t]);
 
   useEffect(() => {
     fetchAudienceTypes();
@@ -51,10 +53,10 @@ export default function AudienceTypesPage() {
 
     try {
       await api.delete(selectedId)
-      showToast("Success", "Audience type " + audienceToDelete?.name + " has been deleted", "success");
+      showToast(t("common.success"), t("audienceTypes.audienceTypeDeleted") + " " + audienceToDelete?.name, "success");
       fetchAudienceTypes();
     } catch {
-      showToast( "Error", "Failed to delete audience type " + audienceToDelete?.name, "error");
+      showToast(t("common.error"), t("audienceTypes.failedToDelete") + " " + audienceToDelete?.name, "error");
     } finally {
       setSelectedId(null)
       setIsDeleting(false)
@@ -69,13 +71,13 @@ export default function AudienceTypesPage() {
       <Toaster ref={toasterRef} />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Audience Types</h1>
-          <p className="text-muted-foreground">Manage audience type categories</p>
+          <h1 className="text-2xl font-semibold">{t("audienceTypes.title")}</h1>
+          <p className="text-muted-foreground">{t("audienceTypes.description")}</p>
         </div>
         <Link href={`/${env}/emails/audience-type/creation`}>
           <Button>
             <IconPlus className="w-4 h-4 mr-2" />
-            Add Audience Type
+            {t("audienceTypes.addAudienceType")}
           </Button>
         </Link>
       </div>
@@ -84,8 +86,8 @@ export default function AudienceTypesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("common.name")}</TableHead>
+              <TableHead className="text-right">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -113,7 +115,7 @@ export default function AudienceTypesPage() {
             ) : (
               <TableRow>
                 <TableCell colSpan={2} className="text-center py-10">
-                  No audience types found.
+                  {t("audienceTypes.noAudienceTypesFound")}
                 </TableCell>
               </TableRow>
             )}
@@ -126,6 +128,8 @@ export default function AudienceTypesPage() {
         onClose={() => setSelectedId(null)}
         onConfirm={handleConfirmDelete}
         loading={isDeleting}
+        title={t("audienceTypes.title")}
+        description={t("audience.deleteConfirmation")}
       />
     </div>
   )

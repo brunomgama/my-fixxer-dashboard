@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
 import { ScheduleApi } from "@/lib/api/schedule"
 import { CampaignApi } from "@/lib/api/campaign"
 import { Button } from "@/components/ui/button"
@@ -43,6 +44,7 @@ interface CalendarEvent {
 
 export default function SchedulePage() {
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   const scheduleApi = useMemo(() => new ScheduleApi(env), [env])
   const campaignApi = useMemo(() => new CampaignApi(env), [env])
 
@@ -91,7 +93,7 @@ export default function SchedulePage() {
         const date = new Date(schedule.scheduled_time)
         return {
           id: schedule.id,
-          title: campaign?.name || 'Unknown Campaign',
+          title: campaign?.name || t('schedules.unknownCampaign'),
           date: date.toISOString().split('T')[0],
           time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
           campaignId: schedule.campaignId,
@@ -100,11 +102,11 @@ export default function SchedulePage() {
       })
       setCalendarEvents(events)
     } catch {
-      setError("Failed to fetch schedules")
+      setError(t('schedules.failedToFetchSchedules'))
     } finally {
       setLoading(false)
     }
-  }, [scheduleApi, campaignApi])
+  }, [scheduleApi, campaignApi, t])
 
   useEffect(() => {
     fetchData()
@@ -152,16 +154,16 @@ export default function SchedulePage() {
 
       if (selectedSchedule) {
         await scheduleApi.update(selectedSchedule.id, scheduleData)
-        showToast("Success", "Schedule updated", "success")
+        showToast(t('common.success'), t('schedules.scheduleUpdated'), "success")
       } else {
         await scheduleApi.create(scheduleData)
-        showToast("Success", "Schedule created", "success")
+        showToast(t('common.success'), t('schedules.scheduleCreated'), "success")
       }
       
       setIsSliderOpen(false)
       fetchData()
     } catch (error) {
-      showToast("Error", "Failed to save schedule", "error")
+      showToast(t('common.error'), t('schedules.failedToSaveSchedule'), "error")
     }
   }
 
@@ -171,10 +173,10 @@ export default function SchedulePage() {
     setIsDeleting(true)
     try {
       await scheduleApi.delete(selectedId)
-      showToast("Success", "Schedule deleted", "success")
+      showToast(t('common.success'), t('schedules.scheduleDeleted'), "success")
       fetchData()
     } catch {
-      showToast("Error", "Failed to delete schedule", "error")
+      showToast(t('common.error'), t('schedules.failedToDeleteSchedule'), "error")
     } finally {
       setSelectedId(null)
       setIsDeleting(false)
@@ -220,6 +222,25 @@ export default function SchedulePage() {
     }
   }
 
+  // Calendar helper functions - add month names translation
+  const getMonthName = (date: Date) => {
+    const monthKey = [
+      'january', 'february', 'march', 'april', 'may', 'june',
+      'july', 'august', 'september', 'october', 'november', 'december'
+    ][date.getMonth()]
+    return t(`schedules.monthNames.${monthKey}`)
+  }
+
+  const getWeekdayNames = () => [
+    t('schedules.weekdays.sun'),
+    t('schedules.weekdays.mon'),
+    t('schedules.weekdays.tue'),
+    t('schedules.weekdays.wed'),
+    t('schedules.weekdays.thu'),
+    t('schedules.weekdays.fri'),
+    t('schedules.weekdays.sat')
+  ]
+
   if (loading) return <RippleWaveLoader />
   if (error) return <p className="p-4 text-destructive">{error}</p>
 
@@ -230,8 +251,8 @@ export default function SchedulePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Schedule</h1>
-          <p className="text-muted-foreground">Manage email campaign schedules</p>
+          <h1 className="text-2xl font-semibold">{t('schedules.title')}</h1>
+          <p className="text-muted-foreground">{t('schedules.description')}</p>
         </div>
         <div className="flex items-center gap-3">
           {/* View Toggle */}
@@ -243,7 +264,7 @@ export default function SchedulePage() {
               className="px-3"
             >
               <IconCalendar className="w-4 h-4 mr-2" />
-              Calendar
+              {t('schedules.calendar')}
             </Button>
             <Button
               variant={viewMode === 'table' ? 'default' : 'ghost'}
@@ -252,13 +273,13 @@ export default function SchedulePage() {
               className="px-3"
             >
               <IconTable className="w-4 h-4 mr-2" />
-              Table
+              {t('schedules.table')}
             </Button>
           </div>
           
           <Button onClick={handleCreateNew}>
             <IconPlus className="w-4 h-4 mr-2" />
-            Schedule Email
+            {t('schedules.scheduleEmail')}
           </Button>
         </div>
       </div>
@@ -272,7 +293,7 @@ export default function SchedulePage() {
               <IconChevronLeft className="w-4 h-4" />
             </Button>
             <h2 className="text-lg font-semibold">
-              {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              {getMonthName(currentDate)} {currentDate.getFullYear()}
             </h2>
             <Button variant="outline" size="sm" onClick={() => navigateMonth('next')}>
               <IconChevronRight className="w-4 h-4" />
@@ -283,8 +304,8 @@ export default function SchedulePage() {
           <div className="border rounded-lg overflow-hidden">
             {/* Weekday Headers */}
             <div className="grid grid-cols-7 border-b bg-muted/50">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="p-2 text-center text-sm font-medium">
+              {getWeekdayNames().map((day, index) => (
+                <div key={index} className="p-2 text-center text-sm font-medium">
                   {day}
                 </div>
               ))}
@@ -306,6 +327,7 @@ export default function SchedulePage() {
                   <div key={day} className={`p-2 h-24 border-r border-b hover:bg-muted/50 transition-colors ${isToday ? 'bg-blue-50' : ''}`}>
                     <div className={`text-sm font-medium mb-1 ${isToday ? 'text-blue-600' : ''}`}>
                       {day}
+                      {isToday && <span className="ml-1 text-xs">({t('schedules.today')})</span>}
                     </div>
                     <div className="space-y-1 max-h-16 overflow-y-auto">
                       {events.map(event => (
@@ -332,11 +354,11 @@ export default function SchedulePage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Campaign</TableHead>
-                <TableHead>Scheduled Time</TableHead>
-                <TableHead>Recipients</TableHead>
-                <TableHead>Variables</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t('schedules.campaign')}</TableHead>
+                <TableHead>{t('schedules.scheduledTime')}</TableHead>
+                <TableHead>{t('schedules.recipients')}</TableHead>
+                <TableHead>{t('schedules.variables')}</TableHead>
+                <TableHead className="text-right">{t('common.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -349,7 +371,7 @@ export default function SchedulePage() {
                     <TableRow key={schedule.id}>
                       <TableCell className="flex items-center gap-2">
                         <IconMail className="h-4 w-4 text-muted-foreground shrink-0" />
-                        {campaign?.name || 'Unknown Campaign'}
+                        {campaign?.name || t('schedules.unknownCampaign')}
                       </TableCell>
 
                       <TableCell>
@@ -364,13 +386,13 @@ export default function SchedulePage() {
 
                       <TableCell>
                         <Badge variant="outline">
-                          {schedule.emailReceiver.length} recipient{schedule.emailReceiver.length !== 1 ? 's' : ''}
+                          {schedule.emailReceiver.length} {schedule.emailReceiver.length === 1 ? t('schedules.recipient') : t('schedules.recipientPlural')}
                         </Badge>
                       </TableCell>
 
                       <TableCell>
                         <Badge variant="outline">
-                          {Object.keys(schedule.variables).length} variable{Object.keys(schedule.variables).length !== 1 ? 's' : ''}
+                          {Object.keys(schedule.variables).length} {Object.keys(schedule.variables).length === 1 ? t('schedules.variable') : t('schedules.variablePlural')}
                         </Badge>
                       </TableCell>
 
@@ -397,7 +419,7 @@ export default function SchedulePage() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-10">
-                    No schedules found.
+                    {t('schedules.noSchedulesFound')}
                   </TableCell>
                 </TableRow>
               )}
@@ -419,7 +441,7 @@ export default function SchedulePage() {
           <div className="fixed right-0 top-0 h-full w-96 bg-background border-l z-50 p-6 overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold">
-                {selectedSchedule ? 'Edit Schedule' : 'Create Schedule'}
+                {selectedSchedule ? t('schedules.editSchedule') : t('schedules.createSchedule')}
               </h2>
               <Button variant="ghost" size="sm" onClick={closeSlider}>
                 <IconX className="h-4 w-4" />
@@ -429,14 +451,14 @@ export default function SchedulePage() {
             <div className="space-y-4">
               {/* Campaign Selection */}
               <div>
-                <Label htmlFor="campaign">Campaign *</Label>
+                <Label htmlFor="campaign">{t('schedules.campaign')} *</Label>
                 <Select 
                   value={formData.campaignId} 
                   onValueChange={(value) => setFormData(prev => ({ ...prev, campaignId: value }))}
                   disabled={!isEditing}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select Campaign" />
+                    <SelectValue placeholder={t('schedules.selectCampaign')} />
                   </SelectTrigger>
                   <SelectContent>
                     {campaigns.map((campaign) => (
@@ -450,7 +472,7 @@ export default function SchedulePage() {
 
               {/* Scheduled Time */}
               <div>
-                <Label htmlFor="scheduled_time">Scheduled Time *</Label>
+                <Label htmlFor="scheduled_time">{t('schedules.scheduledTime')} *</Label>
                 <Input
                   id="scheduled_time"
                   type="datetime-local"
@@ -465,28 +487,28 @@ export default function SchedulePage() {
 
               {/* Email Recipients */}
               <div>
-                <Label htmlFor="emailReceiver">Email Recipients</Label>
+                <Label htmlFor="emailReceiver">{t('schedules.emailRecipients')}</Label>
                 <Textarea
                   id="emailReceiver"
                   value={formData.emailReceiver}
                   onChange={(e) => setFormData(prev => ({ ...prev, emailReceiver: e.target.value }))}
-                  placeholder="Enter email addresses separated by commas"
+                  placeholder={t('schedules.emailRecipientsPlaceholder')}
                   disabled={!isEditing}
                   className="min-h-[80px]"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Separate multiple emails with commas
+                  {t('schedules.emailRecipientsHelp')}
                 </p>
               </div>
 
               {/* Variables */}
               <div>
-                <Label htmlFor="variables">Variables (JSON)</Label>
+                <Label htmlFor="variables">{t('schedules.variables')} (JSON)</Label>
                 <Textarea
                   id="variables"
                   value={formData.variables}
                   onChange={(e) => setFormData(prev => ({ ...prev, variables: e.target.value }))}
-                  placeholder='{"key": "value"}'
+                  placeholder={t('schedules.variablesPlaceholder')}
                   disabled={!isEditing}
                   className="min-h-[100px] font-mono text-sm"
                 />
@@ -497,17 +519,17 @@ export default function SchedulePage() {
                 {isEditing ? (
                   <>
                     <Button onClick={handleSave} className="flex-1">
-                      {selectedSchedule ? 'Update' : 'Create'}
+                      {selectedSchedule ? t('common.update') : t('common.create')}
                     </Button>
                     <Button variant="outline" onClick={() => setIsEditing(false)}>
-                      Cancel
+                      {t('common.cancel')}
                     </Button>
                   </>
                 ) : (
                   <>
                     <Button onClick={() => setIsEditing(true)} className="flex-1">
                       <IconEdit className="w-4 h-4 mr-2" />
-                      Edit
+                      {t('common.edit')}
                     </Button>
                     {selectedSchedule && (
                       <Button 
@@ -535,8 +557,8 @@ export default function SchedulePage() {
         onClose={() => setSelectedId(null)}
         onConfirm={handleDelete}
         loading={isDeleting}
-        title="Confirm Deletion"
-        description="Are you sure you want to delete this schedule? This action cannot be undone."
+        title={t('schedules.confirmDeletion')}
+        description={t('schedules.deleteConfirmation')}
       />
     </div>
   )

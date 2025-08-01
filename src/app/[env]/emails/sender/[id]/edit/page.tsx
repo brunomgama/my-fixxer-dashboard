@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { SenderApi } from "@/lib/api/sender"
 import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -15,6 +16,7 @@ import Toaster from "@/components/toast"
 export default function EditSenderPage() {
   const { id } = useParams()
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   const router = useRouter()
   const api = useMemo(() => new SenderApi(env), [env])
   const { toasterRef, showToast } = useToast()
@@ -37,28 +39,28 @@ export default function EditSenderPage() {
         setEmailType(sender.emailType)
         setActive(sender.active)
       } catch {
-        showToast("Error", "Failed to load sender", "error")
+        showToast(t("common.error"), t("senders.failedToLoad"), "error")
         router.back()
       } finally {
         setLoading(false)
       }
     }
     fetchSender()
-  }, [api, id, router])
+  }, [api, id, router, showToast, t])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
-    if (!email.trim()) newErrors.email = "Email is required"
-    if (alias.length === 0) newErrors.alias = "At least one alias is required"
-    if (emailType.length === 0) newErrors.emailType = "At least one email type is required"
+    if (!email.trim()) newErrors.email = t("senders.emailRequired")
+    if (alias.length === 0) newErrors.alias = t("senders.aliasRequired")
+    if (emailType.length === 0) newErrors.emailType = t("senders.emailTypeRequired")
 
     setErrors(newErrors)
 
     if (Object.keys(newErrors).length > 0) {
       const firstField = Object.keys(newErrors)[0]
       const firstMessage = newErrors[firstField]
-      showToast("Validation Error", firstMessage, "error")
+      showToast(t("senders.validationError"), firstMessage, "error")
       return false
     }
 
@@ -72,10 +74,10 @@ export default function EditSenderPage() {
     setIsSubmitting(true)
     try {
       await api.update(id as string, { email, alias, emailType, active, user: "system" })
-      showToast("Success", "Sender updated successfully", "success")
+      showToast(t("common.success"), t("senders.senderUpdated"), "success")
       router.push(`/${env}/emails/sender`)
     } catch {
-      showToast("Error", "Failed to update sender", "error")
+      showToast(t("common.error"), t("senders.failedToUpdate"), "error")
     } finally {
       setIsSubmitting(false)
     }
@@ -86,13 +88,13 @@ export default function EditSenderPage() {
   return (
     <div className="px-6 pt-8">
       <Toaster ref={toasterRef} />
-      <h1 className="text-2xl font-semibold">Edit Sender</h1>
-      <p className="text-muted-foreground">Update existing sender</p>
+      <h1 className="text-2xl font-semibold">{t("senders.editSender")}</h1>
+      <p className="text-muted-foreground">{t("senders.updateExistingSender")}</p>
       <form onSubmit={handleSubmit} className="space-y-6">
 
         {/* Email */}
         <div>
-          <Label htmlFor="email" className="mb-2 mt-4">Email *</Label>
+          <Label htmlFor="email" className="mb-2 mt-4">{t("common.email")} *</Label>
           <Textarea
             id="email"
             className="w-full"
@@ -101,19 +103,19 @@ export default function EditSenderPage() {
               setEmail(e.target.value)
               if (errors.email) setErrors(prev => ({ ...prev, email: "" }))
             }}
-            placeholder="sender@email.com"
+            placeholder={t("senders.enterSenderEmail")}
           />
         </div>
 
         {/* Alias */}
         <div>
           <Label className={`mb-2 mt-4 ${errors.alias ? 'text-destructive' : ''}`}>
-            Alias *
+            {t("senders.alias")} *
           </Label>
           <div className="flex gap-2">
             <Input
               className={`w-full ${errors.alias ? 'border-destructive' : ''}`}
-              placeholder="Add alias"
+              placeholder={t("senders.addAlias")}
               value={newAlias}
               onChange={(e) => setNewAlias(e.target.value)}
               onKeyDown={(e) => {
@@ -143,7 +145,7 @@ export default function EditSenderPage() {
                   setNewAlias("")
                 }
               }}>
-              Add
+              {t("senders.add")}
             </Button>
           </div>
 
@@ -159,13 +161,13 @@ export default function EditSenderPage() {
                       setAlias((prev) => {
                         const updated = prev.filter((_, i) => i !== idx)
                         if (updated.length === 0) {
-                          setErrors((prev) => ({ ...prev, alias: "At least one alias is required" }))
+                          setErrors((prev) => ({ ...prev, alias: t("senders.aliasRequired") }))
                         }
                         return updated
                       })
                     }}
                   >
-                    Remove
+                    {t("senders.remove")}
                   </Button>
                 </li>
               ))}
@@ -176,7 +178,7 @@ export default function EditSenderPage() {
         {/* Email Type */}
         <div>
           <Label className={`mb-2 mt-4 ${errors.emailType ? "text-destructive" : ""}`}>
-            Email Type *
+            {t("senders.emailTypes")} *
           </Label>
           <div className="flex flex-wrap gap-2">
             {["campaign", "automation", "functional"].map((type) => (
@@ -196,7 +198,7 @@ export default function EditSenderPage() {
                   })
                 }}
               >
-                {type.charAt(0).toUpperCase() + type.slice(1)}
+                {t(`senders.${type}`)}
               </Button>
             ))}
           </div>
@@ -205,10 +207,10 @@ export default function EditSenderPage() {
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-2">
           <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Saving..." : "Save"}
+            {isSubmitting ? t("senders.saving") : t("common.save")}
           </Button>
         </div>
       </form>

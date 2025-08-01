@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AudienceTypesApi } from "@/lib/api/audience-types"
 import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
 import Toaster from "@/components/toast"
 import { RippleWaveLoader } from "@/components/ripple-wave-loader"
 import { useToast } from "@/hooks/useToast"
@@ -15,6 +16,7 @@ import { useToast } from "@/hooks/useToast"
 export default function EditAudienceTypePage() {
   const { id } = useParams()
   const { env } = useEnvironment()
+  const { t } = useTranslation()
   const router = useRouter()
   const api = new AudienceTypesApi(env)
   const { toasterRef, showToast } = useToast();
@@ -35,7 +37,7 @@ export default function EditAudienceTypePage() {
         setName(fetchedData.name)
         setHasFetched(true)
       } catch (error) {
-        showToast("Error", "Failed to load audience type", "error");
+        showToast(t("common.error"), t("audienceTypes.failedToLoad"), "error");
         router.back()
       } finally {
         setLoading(false)
@@ -45,14 +47,14 @@ export default function EditAudienceTypePage() {
     if (id && !hasFetched) {
       fetchAudienceType()
     }
-  }, [id, api, router, hasFetched])
+  }, [id, api, router, hasFetched, showToast, t])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!name.trim()) {
-      setError("Name is required")
-      showToast("Error", "Name is required", "error");
+      setError(t("validation.nameRequired"))
+      showToast(t("common.error"), t("validation.nameRequired"), "error");
       return
     }
 
@@ -60,10 +62,10 @@ export default function EditAudienceTypePage() {
 
     try {
       await api.update(id as string, { name: name.trim(), user: "system" })
-      showToast("Success", `Audience type "${name}" updated successfully`, "success");
+      showToast(t("common.success"), t("audienceTypes.audienceTypeUpdated"), "success");
       router.back()
     } catch (error) {
-      showToast("Error", "Failed to update audience type", "error");
+      showToast(t("common.error"), t("audienceTypes.failedToUpdate"), "error");
     } finally {
       setIsSubmitting(false)
     }
@@ -74,11 +76,11 @@ export default function EditAudienceTypePage() {
   return (
     <div className="px-6 pt-8">
       <Toaster ref={toasterRef} />
-      <h1 className="text-2xl font-semibold">Edit Audience Type</h1>
+      <h1 className="text-2xl font-semibold">{t("audienceTypes.editAudienceType")}</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="w-full">
           <Label htmlFor="name" className={`mb-2 mt-4 ${error ? 'text-destructive' : ''}`}>
-            Name *
+            {t("common.name")} *
           </Label>
           <Input id="name" className={`w-full ${error ? 'border-destructive' : ''}`} value={name}
             onChange={(e) => {
@@ -89,10 +91,10 @@ export default function EditAudienceTypePage() {
 
         <div className="flex justify-end gap-3 pt-2">
           <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Updating..." : "Update"}
+            {isSubmitting ? t("audience.updating") : t("common.update")}
           </Button>
         </div>
       </form>
