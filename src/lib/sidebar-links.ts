@@ -7,7 +7,8 @@ import {
     Home,
     Mail,
     Clock,
-    UserMinus} from "lucide-react";
+    UserMinus,
+    Send} from "lucide-react";
   
   type SidebarLinkItem = {
     label: string;
@@ -27,6 +28,11 @@ import {
       label: "Home",
       href: "/",
       icon: Home,
+    },
+    {
+      label: "Send Email",
+      href: "/send-process",
+      icon: Send,
     },
     { divider: true },
     {

@@ -172,6 +172,8 @@ export default function AudiencePage() {
         onClose={() => setSelectedId(null)}
         onConfirm={handleConfirmDelete}
         loading={isDeleting}
+        title="Delete Audience Type"
+        description="Are you sure you want to delete this audience type? This action cannot be undone"
       />
     </div>
   )
