@@ -197,6 +197,8 @@ export default function CampaignPage() {
         onClose={() => setSelectedId(null)}
         onConfirm={handleConfirmDelete}
         loading={isDeleting}
+        title="Confirm Deletion"
+        description="Are you sure you want to delete this campaign? This action cannot be undone."
       />
     </div>
   )

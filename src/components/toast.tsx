@@ -12,12 +12,13 @@ import {
   Info,
   AlertTriangle,
   X,
+  InfoIcon,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-type Variant = 'default' | 'success' | 'error' | 'warning';
+type Variant = 'default' | 'success' | 'error' | 'warning' | 'info';
 type Position =
   | 'top-left'
   | 'top-center'
@@ -52,6 +53,7 @@ const variantStyles: Record<Variant, string> = {
   success: 'bg-card border-green-600/50',
   error: 'bg-card border-destructive/50',
   warning: 'bg-card border-amber-600/50',
+  info: 'bg-card border-blue-600/50',
 };
 
 const titleColor: Record<Variant, string> = {
@@ -59,6 +61,7 @@ const titleColor: Record<Variant, string> = {
   success: 'text-green-600 dark:text-green-400',
   error: 'text-destructive',
   warning: 'text-amber-600 dark:text-amber-400',
+  info: 'text-blue-600 dark:text-blue-400',
 };
 
 const iconColor: Record<Variant, string> = {
@@ -66,13 +69,15 @@ const iconColor: Record<Variant, string> = {
   success: 'text-green-600 dark:text-green-400',
   error: 'text-destructive',
   warning: 'text-amber-600 dark:text-amber-400',
+  info: 'text-blue-600 dark:text-blue-400',
 };
 
 const variantIcons: Record<Variant, React.ComponentType<{ className?: string }>> = {
   default: Info,
   success: CheckCircle,
   error: AlertCircle,
-  warning: AlertTriangle,
+  warning: InfoIcon,
+  info: AlertTriangle,
 };
 
 const toastAnimation = {

@@ -9,7 +9,7 @@ export const useToast = () => {
   const showToast = (
     title: string,
     message: string,
-    variant: "success" | "error",
+    variant: "success" | "error" | "info" | "warning",
     position: Position = "top-right",
     duration: number = 5000
   ) => {

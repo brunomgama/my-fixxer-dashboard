@@ -185,6 +185,8 @@ export default function TemplatePage() {
         onClose={() => setSelectedId(null)}
         onConfirm={handleConfirmDelete}
         loading={isDeleting}
+        title="Confirm Deletion"
+        description="Are you sure you want to delete this template? This action cannot be undone."
       />
     </div>
   )

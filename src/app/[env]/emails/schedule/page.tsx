@@ -535,6 +535,8 @@ export default function SchedulePage() {
         onClose={() => setSelectedId(null)}
         onConfirm={handleDelete}
         loading={isDeleting}
+        title="Confirm Deletion"
+        description="Are you sure you want to delete this schedule? This action cannot be undone."
       />
     </div>
   )

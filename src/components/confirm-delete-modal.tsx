@@ -8,17 +8,19 @@ interface ConfirmDeleteModalProps {
   onClose: () => void
   onConfirm: () => void
   loading?: boolean
+  title: string
+  description: string
 }
 
-export function ConfirmDeleteModal({ open, onClose, onConfirm, loading }: ConfirmDeleteModalProps) {
+export function ConfirmDeleteModal({ open, onClose, onConfirm, loading, title, description }: ConfirmDeleteModalProps) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Confirm Deletion</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Are you sure you want to delete this audience type? This action cannot be undone.
+          {description}
         </p>
         <DialogFooter className="pt-4">
           <Button variant="outline" onClick={onClose} disabled={loading}>

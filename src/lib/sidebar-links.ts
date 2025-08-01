@@ -6,7 +6,8 @@ import {
     File,
     Home,
     Mail,
-    Clock} from "lucide-react";
+    Clock,
+    UserMinus} from "lucide-react";
   
   type SidebarLinkItem = {
     label: string;
@@ -58,6 +59,11 @@ import {
       href: "/emails/schedule",
       icon: Clock,
     },
+    {
+      label: "Unsubscriptions",
+      href: "/emails/unsubscribe",
+      icon: UserMinus,
+    },
     { divider: true },
     {
       label: "Workflows",
@@ -82,4 +88,3 @@ import {
       icon: FileClock,
     },
   ];
-  
