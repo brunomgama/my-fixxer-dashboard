@@ -1,12 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card"
+import {Card,CardHeader, CardTitle,CardContent} from "@/components/ui/card"
 import { RippleWaveLoader } from "@/components/ripple-wave-loader"
 import { AudienceApi } from "@/lib/api/audience"
 import { SenderApi } from "@/lib/api/sender"
@@ -16,14 +11,7 @@ import { UnsubscribeApi } from "@/lib/api/unsubscribe"
 import { ScheduleApi } from "@/lib/api/schedule"
 import { useEnvironment } from "@/lib/context/environment"
 import { useTranslation } from "@/lib/context/translation"
-import {
-  UsersRound,
-  TicketsPlane,
-  File,
-  Mail,
-  UserMinus,
-  Clock,
-} from "lucide-react"
+import {UsersRound,TicketsPlane,File,Mail,UserMinus,Clock} from "lucide-react"
 import Link from "next/link"
 
 interface MetricData {
@@ -51,6 +39,7 @@ export function SectionCards() {
     totalCampaigns: MetricData
     totalUnsubscribes: MetricData
     totalSchedules: MetricData
+    totalActiveSchedules: MetricData
   }>({
     totalAudiences: {
       value: "0",
@@ -87,6 +76,12 @@ export function SectionCards() {
       change: 0,
       trend: "up",
       description: "infoSectionCards.totalSchedules",
+    },
+    totalActiveSchedules: {
+      value: "0",
+      change: 0,
+      trend: "up",
+      description: "infoSectionCards.totalActiveSchedules",
     },
   })
 
@@ -229,6 +224,10 @@ export function SectionCards() {
             ...p.totalSchedules,
             value: data.count.toLocaleString(),
           },
+          totalActiveSchedules: {
+            ...p.totalActiveSchedules,
+            value: data.active.toLocaleString(),
+          },
         }))
       } catch {
         if (cancelled) return
@@ -293,6 +292,7 @@ export function SectionCards() {
           loading: loadingScheduler,
           icon: <Clock className="h-4 w-4 text-muted-foreground" />,
           title: t("infoSectionCards.totalSchedules"),
+          active: metrics.totalActiveSchedules.value,
           value: metrics.totalSchedules.value,
           desc: t(metrics.totalSchedules.description),
           href: `/${env}/emails/schedule`,
@@ -311,7 +311,13 @@ export function SectionCards() {
                   {icon}
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{value}</div>
+                  {key === "schedule" ? (
+                    <div className="text-2xl font-bold">
+                      {metrics.totalActiveSchedules.value}/{metrics.totalSchedules.value}
+                    </div>
+                  ) : (
+                    <div className="text-2xl font-bold">{value}</div>
+                  )}
                   <p className="text-xs text-muted-foreground">{desc}</p>
                 </CardContent>
               </>

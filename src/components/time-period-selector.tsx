@@ -24,13 +24,13 @@ export function TimePeriodSelector({
     { label: "90 days", value: 90 }
   ]
 
-  const trendOptions = [
-    { label: "7 days", value: 7 },
-    { label: "14 days", value: 14 },
-    { label: "30 days", value: 30 },
-    { label: "60 days", value: 60 },
-    { label: "90 days", value: 90 }
-  ]
+  // const trendOptions = [
+  //   { label: "7 days", value: 7 },
+  //   { label: "14 days", value: 14 },
+  //   { label: "30 days", value: 30 },
+  //   { label: "60 days", value: 60 },
+  //   { label: "90 days", value: 90 }
+  // ]
 
   return (
     <Card>
@@ -60,7 +60,7 @@ export function TimePeriodSelector({
           </ToggleGroup>
         </div>
         {/* Trend Analysis Period */}
-        <div className="sm:ml-auto mt-4 sm:mt-0">
+        {/* <div className="sm:ml-auto mt-4 sm:mt-0">
           <span className="text-sm font-medium text-muted-foreground">Trend</span>
           <ToggleGroup
             type="single"
@@ -82,7 +82,7 @@ export function TimePeriodSelector({
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
-        </div>
+        </div> */}
       </CardContent>
     </Card>
   )

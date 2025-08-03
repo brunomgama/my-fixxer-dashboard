@@ -402,6 +402,8 @@
       "october": "October",
       "november": "November",
       "december": "December"
-    }
+    },
+    "recipientPlural": "Recipients",
+    "variablePlural": "Variables"
   }
 }

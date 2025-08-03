@@ -90,7 +90,7 @@ export default function Home() {
                 {/* <h3 className="text-lg font-semibold mb-4">Trend Analysis</h3> */}
                 <EmailTrendCharts 
                   selectedDays={selectedDays} 
-                  trendDays={trendDays} 
+                  trendDays={selectedDays} 
                 />
               </div>
 

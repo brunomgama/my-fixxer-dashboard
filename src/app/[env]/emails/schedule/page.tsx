@@ -376,7 +376,7 @@ export default function SchedulePage() {
 
                       <TableCell>
                         <Badge variant="outline">
-                          {schedule.emailReceiver.length} {schedule.emailReceiver.length === 1 ? t('schedules.recipient') : t('schedules.recipientPlural')}
+                          {(schedule.emailReceiver?.length || 0)} {(schedule.emailReceiver?.length === 1 ? t('schedules.recipient') : t('schedules.recipientPlural'))}
                         </Badge>
                       </TableCell>
 

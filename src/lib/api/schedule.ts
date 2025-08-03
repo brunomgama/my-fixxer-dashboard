@@ -59,7 +59,7 @@ import {
       return this.request(`/schedule/${id}`)
     }
 
-    async count(): Promise<{count: number}> {
+    async count(): Promise<{count: number, active: number}> {
       return this.request(`/schedule/count`)
     }
   
