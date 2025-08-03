@@ -31,7 +31,7 @@ import {
     },
     {
       label: "navigation.sendEmail",
-      href: "/send-process",
+      href: "/emails/send-process",
       icon: Send,
     },
     { divider: true },

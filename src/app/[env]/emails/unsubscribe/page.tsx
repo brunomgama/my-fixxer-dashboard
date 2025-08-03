@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useEnvironment } from "@/lib/context/environment"
 import { useTranslation } from "@/lib/context/translation"
 import { UnsubscribeApi } from "@/lib/api/unsubscribe"
@@ -14,15 +14,8 @@ import { Badge } from "@/components/ui/badge"
 import { Unsubscribe, UnsubscribeListParams } from "@/lib/types/unsubscribe"
 import { useToast } from "@/hooks/useToast"
 import Toaster from "@/components/toast"
-import { 
-  IconSearch, 
-  IconTrash,
-  IconMail,
-  IconClock,
-  IconChevronRight,
-  IconFilter,
-  IconX
-} from "@tabler/icons-react"
+import { IconTrash, IconMail,
+  IconClock, IconChevronRight, IconFilter, IconX} from "@tabler/icons-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function UnsubscribePage() {
@@ -48,16 +41,16 @@ export default function UnsubscribePage() {
     sortBy: "unsubscribedAt",
     sortOrder: "desc"
   })
+
   const [showFilters, setShowFilters] = useState(false)
   const [emailFilter, setEmailFilter] = useState("")
+  const [tempEmailFilter, setTempEmailFilter] = useState(emailFilter)
   const [emailTypeFilter, setEmailTypeFilter] = useState<string>("all")
 
   // Search functionality
-  const [searchEmail, setSearchEmail] = useState("")
-  const [searchEmailType, setSearchEmailType] = useState<string>("Marketing")
   const [searchResult, setSearchResult] = useState<Unsubscribe | null>(null)
-  const [searchLoading, setSearchLoading] = useState(false)
   const [searchError, setSearchError] = useState<string | null>(null)
+  
 
   // Delete modal state
   const [selectedUnsubscribe, setSelectedUnsubscribe] = useState<Unsubscribe | null>(null)
@@ -140,34 +133,34 @@ export default function UnsubscribePage() {
   useEffect(() => {
     console.log('useEffect triggered, calling fetchUnsubscribes')
     fetchUnsubscribes(true)
-  }, [filters, emailFilter, emailTypeFilter, itemsPerPage, env]) // Added env to dependencies
+  }, [filters, emailFilter, emailTypeFilter, itemsPerPage, env])
 
-  const handleSearch = async () => {
-    if (!searchEmail.trim()) {
-      showToast(t("common.error"), t("unsubscribe.pleaseEnterEmail"), "error")
-      return
-    }
+  // const handleSearch = async () => {
+  //   if (!searchEmail.trim()) {
+  //     showToast(t("common.error"), t("unsubscribe.pleaseEnterEmail"), "error")
+  //     return
+  //   }
 
-    setSearchLoading(true)
-    setSearchError(null)
-    setSearchResult(null)
+  //   setSearchLoading(true)
+  //   setSearchError(null)
+  //   setSearchResult(null)
 
-    try {
-      const result = await api.searchByEmail(searchEmail.trim(), searchEmailType)
-      setSearchResult(result)
-      showToast(t("common.success"), t("unsubscribe.unsubscriptionFound"), "success")
-    } catch (error: any) {
-      if (error.message.includes("404")) {
-        setSearchError(t("unsubscribe.noUnsubscriptionFound"))
-        showToast(t("common.info"), t("unsubscribe.noUnsubscriptionFound"), "warning")
-      } else {
-        setSearchError(t("unsubscribe.failedToSearch"))
-        showToast(t("common.error"), t("unsubscribe.failedToSearch"), "error")
-      }
-    } finally {
-      setSearchLoading(false)
-    }
-  }
+  //   try {
+  //     const result = await api.searchByEmail(searchEmail.trim(), searchEmailType)
+  //     setSearchResult(result)
+  //     showToast(t("common.success"), t("unsubscribe.unsubscriptionFound"), "success")
+  //   } catch (error: any) {
+  //     if (error.message.includes("404")) {
+  //       setSearchError(t("unsubscribe.noUnsubscriptionFound"))
+  //       showToast(t("common.info"), t("unsubscribe.noUnsubscriptionFound"), "warning")
+  //     } else {
+  //       setSearchError(t("unsubscribe.failedToSearch"))
+  //       showToast(t("common.error"), t("unsubscribe.failedToSearch"), "error")
+  //     }
+  //   } finally {
+  //     setSearchLoading(false)
+  //   }
+  // }
 
   const handleRemoveUnsubscription = async () => {
     if (!selectedUnsubscribe) return
@@ -209,11 +202,13 @@ export default function UnsubscribePage() {
   }
 
   const handleApplyFilters = () => {
+    setEmailFilter(tempEmailFilter)
     fetchUnsubscribes(true)
-    setShowFilters(false)
+    setShowFilters(true)
   }
 
   const handleClearFilters = () => {
+    setTempEmailFilter("")
     setEmailFilter("")
     setEmailTypeFilter("all")
     setFilters({
@@ -313,8 +308,8 @@ export default function UnsubscribePage() {
               <Input
                 id="emailFilter"
                 type="email"
-                value={emailFilter}
-                onChange={(e) => setEmailFilter(e.target.value)}
+                value={tempEmailFilter}
+                onChange={(e) => setTempEmailFilter(e.target.value)}
                 placeholder={t("unsubscribe.filterByEmail")}
               />
             </div>
@@ -374,81 +369,6 @@ export default function UnsubscribePage() {
           </div>
         </div>
       )}
-
-      {/* Search Section */}
-      <div className="border rounded-lg p-6 space-y-4">
-        <h2 className="text-lg font-semibold">{t("unsubscribe.searchUnsubscription")}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label htmlFor="searchEmail">{t("unsubscribe.emailAddress")}</Label>
-            <Input
-              id="searchEmail"
-              type="email"
-              value={searchEmail}
-              onChange={(e) => setSearchEmail(e.target.value)}
-              placeholder={t("unsubscribe.enterEmailAddress")}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            />
-          </div>
-          <div>
-            <Label htmlFor="searchEmailType">{t("unsubscribe.emailType")}</Label>
-            <Select value={searchEmailType} onValueChange={setSearchEmailType}>
-              <SelectTrigger>
-                <SelectValue placeholder={t("unsubscribe.selectEmailType")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Marketing">{t("unsubscribe.marketing")}</SelectItem>
-                <SelectItem value="Automation">{t("unsubscribe.automation")}</SelectItem>
-                <SelectItem value="Functional">{t("unsubscribe.functional")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-end">
-            <Button onClick={handleSearch} disabled={searchLoading} className="w-full">
-              <IconSearch className="w-4 h-4 mr-2" />
-              {searchLoading ? t("unsubscribe.searching") : t("unsubscribe.search")}
-            </Button>
-          </div>
-        </div>
-
-        {/* Search Results */}
-        {searchResult && (
-          <div className="mt-4 p-4 border rounded-lg bg-green-50">
-            <h3 className="font-medium text-green-800 mb-2">{t("unsubscribe.unsubscriptionFound")}</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="font-medium">{t("unsubscribe.email")}:</span> {searchResult.email}
-              </div>
-              <div>
-                <span className="font-medium">{t("common.type")}:</span> 
-                <Badge className={`ml-2 ${getEmailTypeBadge(searchResult.emailType)}`}>
-                  {t(`unsubscribe.${searchResult.emailType.toLowerCase()}`)}
-                </Badge>
-              </div>
-              <div>
-                <span className="font-medium">{t("unsubscribe.unsubscribed")}:</span> {formatDateTime(searchResult.unsubscribedAt).date}
-              </div>
-              <div className="flex items-center justify-end">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="text-destructive"
-                  onClick={() => setSelectedUnsubscribe(searchResult)}
-                >
-                  <IconTrash className="w-4 h-4 mr-2" />
-                  {t("unsubscribe.remove")}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {searchError && (
-          <div className="mt-4 p-4 border rounded-lg bg-yellow-50">
-            <p className="text-yellow-800">{searchError}</p>
-          </div>
-        )}
-      </div>
 
       {/* Unsubscriptions Table */}
       <div className="rounded-md border">

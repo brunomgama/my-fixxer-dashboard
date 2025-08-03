@@ -1,289 +1,324 @@
 "use client"
 
-import {
-  IconTrendingDown,
-  IconTrendingUp,
-  IconUsers,
-  IconMail,
-  IconDatabase,
-  IconTarget,
-  IconTemplate,
-} from "@tabler/icons-react"
 import { useEffect, useState } from "react"
-
-import { Badge } from "@/components/ui/badge"
-import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card"
+import { RippleWaveLoader } from "@/components/ripple-wave-loader"
 import { AudienceApi } from "@/lib/api/audience"
 import { SenderApi } from "@/lib/api/sender"
-import { useEnvironment } from "@/lib/context/environment"
-import { RippleWaveLoader } from "../ripple-wave-loader"
 import { TemplateApi } from "@/lib/api/template"
+import { CampaignApi } from "@/lib/api/campaign"
+import { UnsubscribeApi } from "@/lib/api/unsubscribe"
+import { ScheduleApi } from "@/lib/api/schedule"
+import { useEnvironment } from "@/lib/context/environment"
+import { useTranslation } from "@/lib/context/translation"
+import {
+  UsersRound,
+  TicketsPlane,
+  File,
+  Mail,
+  UserMinus,
+  Clock,
+} from "lucide-react"
+import Link from "next/link"
 
 interface MetricData {
   value: string
   change: number
-  trend: 'up' | 'down'
+  trend: "up" | "down"
   description: string
 }
 
 export function SectionCards() {
   const { env } = useEnvironment()
+  const { t } = useTranslation()
 
   const [loadingAudience, setLoadingAudience] = useState(true)
   const [loadingSender, setLoadingSender] = useState(true)
   const [loadingTemplate, setLoadingTemplate] = useState(true)
+  const [loadingCampaign, setLoadingCampaign] = useState(true)
+  const [loadingUnsubscribes, setLoadingUnsubscribes] = useState(true)
+  const [loadingScheduler, setLoadingScheduler] = useState(true)
 
   const [metrics, setMetrics] = useState<{
     totalAudiences: MetricData
-    activeAudiences: MetricData
     totalSenders: MetricData
-    audienceTypes: MetricData
     totalTemplates: MetricData
+    totalCampaigns: MetricData
+    totalUnsubscribes: MetricData
+    totalSchedules: MetricData
   }>({
-    totalAudiences: { value: "0", change: 0, trend: 'up', description: "Total audiences created" },
-    activeAudiences: { value: "0", change: 0, trend: 'up', description: "Currently active audiences" },
-    totalSenders: { value: "0", change: 0, trend: 'up', description: "Email senders configured" },
-    audienceTypes: { value: "0", change: 0, trend: 'up', description: "Different audience categories" },
-    totalTemplates: { value: "0", change: 0, trend: 'up', description: "Email templates available" }
+    totalAudiences: {
+      value: "0",
+      change: 0,
+      trend: "up",
+      description: "infoSectionCards.totalAudiences",
+    },
+    totalSenders: {
+      value: "0",
+      change: 0,
+      trend: "up",
+      description: "infoSectionCards.totalSenders",
+    },
+    totalTemplates: {
+      value: "0",
+      change: 0,
+      trend: "up",
+      description: "infoSectionCards.totalTemplates",
+    },
+    totalCampaigns: {
+      value: "0",
+      change: 0,
+      trend: "up",
+      description: "infoSectionCards.totalCampaigns",
+    },
+    totalUnsubscribes: {
+      value: "0",
+      change: 0,
+      trend: "up",
+      description: "infoSectionCards.totalUnsubscribes",
+    },
+    totalSchedules: {
+      value: "0",
+      change: 0,
+      trend: "up",
+      description: "infoSectionCards.totalSchedules",
+    },
   })
 
+  // Audience
   useEffect(() => {
     let cancelled = false
-    async function loadAudienceMetrics() {
+    async function load() {
       setLoadingAudience(true)
-      console.log("Loading metrics for environment:", env)
       try {
-        const apiAudience = new AudienceApi(env)
-        const data = await apiAudience.count()
+        const data = await new AudienceApi(env).count()
         if (cancelled) return
-        setMetrics((prev) => ({
-          ...prev,
+        setMetrics((p) => ({
+          ...p,
           totalAudiences: {
-            ...prev.totalAudiences,
+            ...p.totalAudiences,
             value: data.count.toLocaleString(),
-            change: 12.5,
-            trend: "up",
-            description: "Growing audience base",
           },
         }))
-      } catch (err) {
+      } catch {
         if (cancelled) return
-        setMetrics((prev) => ({
-          ...prev,
-          totalAudiences: {
-            ...prev.totalAudiences,
-            value: "0",
-            description: "Error loading data",
-            change: 0,
-            trend: "down",
-          },
-        }))
       } finally {
         if (!cancelled) setLoadingAudience(false)
       }
     }
-    loadAudienceMetrics()
+    load()
     return () => { cancelled = true }
   }, [env])
 
+  // Sender
   useEffect(() => {
     let cancelled = false
-    async function loadSenderMetrics() {
+    async function load() {
       setLoadingSender(true)
       try {
-        const apiSender = new SenderApi(env)
-        const data = await apiSender.count()
+        const data = await new SenderApi(env).count()
         if (cancelled) return
-        setMetrics((prev) => ({
-          ...prev,
+        setMetrics((p) => ({
+          ...p,
           totalSenders: {
-            ...prev.totalSenders,
+            ...p.totalSenders,
             value: data.count.toLocaleString(),
-            change: 8.2,
-            trend: "up",
-            description: "Growing sender base",
           },
         }))
-      } catch (err) {
+      } catch {
         if (cancelled) return
-        setMetrics((prev) => ({
-          ...prev,
-          totalSenders: {
-            ...prev.totalSenders,
-            value: "0",
-            description: "Error loading data",
-            change: 0,
-            trend: "down",
-          },
-        }))
       } finally {
         if (!cancelled) setLoadingSender(false)
       }
     }
-    loadSenderMetrics()
+    load()
     return () => { cancelled = true }
   }, [env])
 
+  // Template
   useEffect(() => {
     let cancelled = false
-    async function loadTemplateMetrics() {
+    async function load() {
       setLoadingTemplate(true)
-      console.log("Loading metrics for environment:", env)
       try {
-        const apiTemplate = new TemplateApi(env)
-        const data = await apiTemplate.count()
+        const data = await new TemplateApi(env).count()
         if (cancelled) return
-        setMetrics((prev) => ({
-          ...prev,
+        setMetrics((p) => ({
+          ...p,
           totalTemplates: {
-            ...prev.totalTemplates,
+            ...p.totalTemplates,
             value: data.count.toLocaleString(),
-            change: 12.5,
-            trend: "up",
-            description: "Growing template base",
           },
         }))
-      } catch (err) {
+      } catch {
         if (cancelled) return
-        setMetrics((prev) => ({
-          ...prev,
-          totalTemplates: {
-            ...prev.totalTemplates,
-            value: "0",
-            description: "Error loading data",
-            change: 0,
-            trend: "down",
-          },
-        }))
       } finally {
         if (!cancelled) setLoadingTemplate(false)
       }
     }
-    loadTemplateMetrics()
+    load()
     return () => { cancelled = true }
   }, [env])
 
-  const formatChange = (change: number) => {
-    const sign = change >= 0 ? '+' : ''
-    return `${sign}${change.toFixed(1)}%`
-  }
+  // Campaign
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      setLoadingCampaign(true)
+      try {
+        const data = await new CampaignApi(env).count()
+        if (cancelled) return
+        setMetrics((p) => ({
+          ...p,
+          totalCampaigns: {
+            ...p.totalCampaigns,
+            value: data.count.toLocaleString(),
+          },
+        }))
+      } catch {
+        if (cancelled) return
+      } finally {
+        if (!cancelled) setLoadingCampaign(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [env])
+
+  // Unsubscribes
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      setLoadingUnsubscribes(true)
+      try {
+        const data = await new UnsubscribeApi(env).count()
+        if (cancelled) return
+        setMetrics((p) => ({
+          ...p,
+          totalUnsubscribes: {
+            ...p.totalUnsubscribes,
+            value: Math.round(data.count/2).toLocaleString(),
+          },
+        }))
+      } catch {
+        if (cancelled) return
+      } finally {
+        if (!cancelled) setLoadingUnsubscribes(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [env])
+
+  // Scheduler
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      setLoadingScheduler(true)
+      try {
+        const data = await new ScheduleApi(env).count()
+        if (cancelled) return
+        setMetrics((p) => ({
+          ...p,
+          totalSchedules: {
+            ...p.totalSchedules,
+            value: data.count.toLocaleString(),
+          },
+        }))
+      } catch {
+        if (cancelled) return
+      } finally {
+        if (!cancelled) setLoadingScheduler(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [env])
 
   return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-5">
-      <Card className="@container/card min-h-[180px]">
-        {loadingAudience ? (
-          <div className="flex items-center justify-center h-full w-full max-h-[40px]">
-            <RippleWaveLoader />
-          </div>
-        ) : (
-          <>
-            <CardHeader>
-              <CardDescription className="flex items-center gap-2">
-                <IconUsers className="size-4" />
-                Total Audiences
-              </CardDescription>
-              <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-                {metrics.totalAudiences.value}
-              </CardTitle>
-              <CardAction>
-                <Badge variant="outline" className={metrics.totalAudiences.trend === 'up' ? 'text-green-600' : 'text-red-600'}>
-                  {metrics.totalAudiences.trend === 'up' ? <IconTrendingUp /> : <IconTrendingDown />}
-                  {formatChange(metrics.totalAudiences.change)}
-                </Badge>
-              </CardAction>
-            </CardHeader>
-          </>
-        )}
-      </Card>
-
-      <Card className="@container/card min-h-[180px]">
-        {loadingSender ? (
-          <div className="flex items-center justify-center h-full w-full max-h-[40px]">
-            <RippleWaveLoader />
-          </div>
-        ) : (
-          <>
-            <CardHeader>
-              <CardDescription className="flex items-center gap-2">
-                <IconMail className="size-4" />
-                Email Senders
-              </CardDescription>
-              <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-                {metrics.totalSenders.value}
-              </CardTitle>
-              <CardAction>
-                <Badge variant="outline" className={metrics.totalSenders.trend === 'up' ? 'text-green-600' : 'text-red-600'}>
-                  {metrics.totalSenders.trend === 'up' ? <IconTrendingUp /> : <IconTrendingDown />}
-                  {formatChange(metrics.totalSenders.change)}
-                </Badge>
-              </CardAction>
-            </CardHeader>
-          </>
-        )}
-      </Card>
-
-      <Card className="@container/card min-h-[180px]">
-        {loadingTemplate ? (
-          <div className="flex items-center justify-center h-full w-full max-h-[40px]">
-            <RippleWaveLoader />
-          </div>
-        ) : (
-          <>
-            <CardHeader>
-              <CardDescription className="flex items-center gap-2">
-                <IconUsers className="size-4" />
-                Total Templates
-              </CardDescription>
-              <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-                {metrics.totalTemplates.value}
-              </CardTitle>
-              <CardAction>
-                <Badge variant="outline" className={metrics.totalTemplates.trend === 'up' ? 'text-green-600' : 'text-red-600'}>
-                  {metrics.totalTemplates.trend === 'up' ? <IconTrendingUp /> : <IconTrendingDown />}
-                  {formatChange(metrics.totalTemplates.change)}
-                </Badge>
-              </CardAction>
-            </CardHeader>
-          </>
-        )}
-      </Card>
-
-      {/* Other cards remain static for now, but you can add loaders/fetches the same way */}
-      <Card className="@container/card min-h-[180px]">
-        <CardHeader>
-          <CardDescription className="flex items-center gap-2">
-            <IconDatabase className="size-4" />
-            Audience Types
-          </CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {metrics.audienceTypes.value}
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline" className={metrics.audienceTypes.trend === 'up' ? 'text-green-600' : 'text-red-600'}>
-              {metrics.audienceTypes.trend === 'up' ? <IconTrendingUp /> : <IconTrendingDown />}
-              {formatChange(metrics.audienceTypes.change)}
-            </Badge>
-          </CardAction>
-        </CardHeader>
-      </Card>
-
-      <Card className="@container/card min-h-[180px]">
-        <CardHeader>
-          <CardDescription className="flex items-center gap-2">
-            <IconTemplate className="size-4" />
-            Email Templates
-          </CardDescription>
-          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {metrics.totalTemplates.value}
-          </CardTitle>
-          <CardAction>
-            <Badge variant="outline" className={metrics.totalTemplates.trend === 'up' ? 'text-green-600' : 'text-red-600'}>
-              {metrics.totalTemplates.trend === 'up' ? <IconTrendingUp /> : <IconTrendingDown />}
-              {formatChange(metrics.totalTemplates.change)}
-            </Badge>
-          </CardAction>
-        </CardHeader>
-      </Card>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      {[
+        {
+          key: "audience",
+          loading: loadingAudience,
+          icon: <UsersRound className="h-4 w-4 text-muted-foreground" />,
+          title: t("infoSectionCards.totalAudiences"),
+          value: metrics.totalAudiences.value,
+          desc: t(metrics.totalAudiences.description),
+          href: `/${env}/emails/audience`,
+        },
+        {
+          key: "sender",
+          loading: loadingSender,
+          icon: <TicketsPlane className="h-4 w-4 text-muted-foreground" />,
+          title: t("infoSectionCards.totalSenders"),
+          value: metrics.totalSenders.value,
+          desc: t(metrics.totalSenders.description),
+          href: `/${env}/emails/sender`,
+        },
+        {
+          key: "template",
+          loading: loadingTemplate,
+          icon: <File className="h-4 w-4 text-muted-foreground" />,
+          title: t("infoSectionCards.totalTemplates"),
+          value: metrics.totalTemplates.value,
+          desc: t(metrics.totalTemplates.description),
+          href: `/${env}/emails/template`,
+        },
+        {
+          key: "campaign",
+          loading: loadingCampaign,
+          icon: <Mail className="h-4 w-4 text-muted-foreground" />,
+          title: t("infoSectionCards.totalCampaigns"),
+          value: metrics.totalCampaigns.value,
+          desc: t(metrics.totalCampaigns.description),
+          href: `/${env}/emails/campaign`,
+        },
+        {
+          key: "unsubscribe",
+          loading: loadingUnsubscribes,
+          icon: <UserMinus className="h-4 w-4 text-muted-foreground" />,
+          title: t("infoSectionCards.totalUnsubscribes"),
+          value: metrics.totalUnsubscribes.value,
+          desc: t(metrics.totalUnsubscribes.description),
+          href: `/${env}/emails/unsubscribe`,
+        },
+        {
+          key: "schedule",
+          loading: loadingScheduler,
+          icon: <Clock className="h-4 w-4 text-muted-foreground" />,
+          title: t("infoSectionCards.totalSchedules"),
+          value: metrics.totalSchedules.value,
+          desc: t(metrics.totalSchedules.description),
+          href: `/${env}/emails/schedule`,
+        },
+      ].map(({ key, href, loading, icon, title, value, desc }) => (
+        <Link key={key} href={href} className="focus:outline-none">
+          <Card className="cursor-pointer transition-shadow hover:shadow-md hover:bg-black hover:text-white">
+            {loading ? (
+              <div className="flex items-center justify-center h-16">
+                <RippleWaveLoader />
+              </div>
+            ) : (
+              <>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{title}</CardTitle>
+                  {icon}
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{value}</div>
+                  <p className="text-xs text-muted-foreground">{desc}</p>
+                </CardContent>
+              </>
+            )}
+          </Card>
+        </Link>
+      ))}
     </div>
   )
 }

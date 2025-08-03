@@ -58,6 +58,10 @@ import {
     async getOne(id: string): Promise<Schedule> {
       return this.request(`/schedule/${id}`)
     }
+
+    async count(): Promise<{count: number}> {
+      return this.request(`/schedule/count`)
+    }
   
     async create(data: CreateScheduleRequest): Promise<Schedule> {
       console.log("Creating schedule with data:", data)

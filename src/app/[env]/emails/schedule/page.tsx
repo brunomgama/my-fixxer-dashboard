@@ -14,18 +14,8 @@ import { Schedule } from "@/lib/types/schedule"
 import { Campaign } from "@/lib/types/campaign"
 import { useToast } from "@/hooks/useToast"
 import Toaster from "@/components/toast"
-import { 
-  IconPlus, 
-  IconCalendar, 
-  IconTable, 
-  IconEdit, 
-  IconTrash,
-  IconClock,
-  IconMail,
-  IconX,
-  IconChevronLeft,
-  IconChevronRight
-} from "@tabler/icons-react"
+import { IconPlus, IconCalendar, IconTable, IconEdit, IconTrash, IconClock,
+  IconMail, IconX, IconChevronLeft, IconChevronRight} from "@tabler/icons-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"

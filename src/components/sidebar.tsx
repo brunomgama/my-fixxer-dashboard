@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { ChevronsUpDown, LogOut, UserCircle } from "lucide-react";
+import { ChevronsUpDown, Globe, LogOut, UserCircle } from "lucide-react";
 import { useEnvironment } from "@/lib/context/environment";
 import { sidebarLinks } from "@/lib/sidebar-links";
 import { LanguageSwitcher } from "./language-switcher";
@@ -162,9 +162,16 @@ export function SessionNavBar() {
 
               {/* FOOTER */}
               <div className="flex flex-col p-2 mt-auto gap-2">
-                <div className="flex items-center">
-                  <LanguageSwitcher />
+
+
+                <div className="flex h-8 w-full flex-row items-center rounded-md px-2 py-1.5 transition hover:bg-muted hover:text-primary">
+                  <Globe className="h-4 w-4 shrink-0" />
+                  <motion.li variants={variants}>
+                    <LanguageSwitcher isCollapsed={isCollapsed} />
+                  </motion.li>
                 </div>
+
+
                 <Link
                   href="/settings/profile"
                   className="flex h-8 w-full flex-row items-center rounded-md px-2 py-1.5 transition hover:bg-muted hover:text-primary"
