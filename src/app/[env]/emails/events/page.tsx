@@ -216,7 +216,7 @@ export default function EmailEventsPage() {
       SELECT count(*) as total FROM "AwsDataCatalog"."emails-logs-db-prod-mri"."processed"
     `)
       .then(data => {
-        const count = data && data[0] && data[0].total ? parseInt(data[0].total, 10) : 0
+        const count = Array.isArray(data) && data[0] && 'total' in data[0] ? parseInt(data[0].total as string, 10) : 0
         setTotalCount(count)
       })
       .catch(err => setTotalCount(null))
