@@ -41,7 +41,8 @@
     "sendProcess": "Verzendproces",
     "senders": "Verzenders",
     "templates": "Templates",
-    "unsubscribe": "Uitschrijven"
+    "unsubscribe": "Uitschrijven",
+    "events_emails": "E-mailgezondheid"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -402,6 +403,50 @@
       "october": "Oktober",
       "november": "November",
       "december": "December"
+    }
+  },
+  "home_dashboard": {
+    "title": "E-mail Gezondheidsdashboard",
+    "description": "Controleer de leveringsprestaties van je e-mails en behoud een optimale verzendreputatie"
+  },
+  "time_period_select": {
+    "summary": "Samenvatting",
+    "7days": "7 dagen",
+    "14days": "14 dagen",
+    "30days": "30 dagen",
+    "60days": "60 dagen",
+    "90days": "90 dagen",
+    "cache_info": "Gegevens worden 24u in cache bewaard",
+    "refresh": "Vernieuwen",
+    "refreshing": "Bezig met vernieuwen..."
+  },
+  "email_health": {
+    "title": "E-mail Gezondheidsdashboard",
+    "description": "Controleer de leveringsprestaties van je e-mails en behoud een optimale verzendreputatie",
+    "cards": {
+      "total_sent": "Totaal verzonden",
+      "total_bounces": "Totaal bounces",
+      "total_complaints": "Totaal klachten",
+      "bounce_rate": "Bounce-percentage",
+      "complaint_rate": "Klachtenpercentage",
+      "health_status": "Gezondheidsstatus"
+    },
+    "status": {
+      "healthy": "Gezond",
+      "warning": "Waarschuwing",
+      "at_risk": "Risico"
+    },
+    "thresholds": {
+      "bounce_warning": "Waarschuwing bij 5%, Risico bij 10%",
+      "complaint_warning": "Waarschuwing bij 0,1%, Risico bij 0,5%"
+    },
+    "time_periods": {
+      "last_days": "Laatste {days} dagen",
+      "of_sent": "van verzonden"
+    },
+    "errors": {
+      "loading_failed": "Fout bij laden van e-mail gezondheidsgegevens: {error}",
+      "no_data": "Geen e-mail gezondheidsgegevens beschikbaar"
     }
   }
 }

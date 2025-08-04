@@ -2,42 +2,39 @@
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { RefreshCw } from "lucide-react"
+import { useTranslation } from "@/lib/context/translation"
 
 interface TimePeriodSelectorProps {
   selectedDays: number
   onDaysChangeAction: (days: number) => void
   trendDays: number
   onTrendDaysChangeAction: (days: number) => void
+  onRefresh?: () => void
+  isRefreshing?: boolean
 }
 
-export function TimePeriodSelector({ 
-  selectedDays, 
-  onDaysChangeAction, 
-  trendDays, 
-  onTrendDaysChangeAction 
-}: TimePeriodSelectorProps) {
-  const periodOptions = [
-    { label: "7 days", value: 7 },
-    { label: "14 days", value: 14 },
-    { label: "30 days", value: 30 },
-    { label: "60 days", value: 60 },
-    { label: "90 days", value: 90 }
-  ]
+export function TimePeriodSelector({ selectedDays, onDaysChangeAction, onRefresh,isRefreshing = false}: TimePeriodSelectorProps) {
+  const { t } = useTranslation();
 
-  // const trendOptions = [
-  //   { label: "7 days", value: 7 },
-  //   { label: "14 days", value: 14 },
-  //   { label: "30 days", value: 30 },
-  //   { label: "60 days", value: 60 },
-  //   { label: "90 days", value: 90 }
-  // ]
+
+  const periodOptions = [
+    { label: "7days", value: 7 },
+    { label: "14days", value: 14 },
+    { label: "30days", value: 30 },
+    { label: "60days", value: 60 },
+    { label: "90days", value: 90 }
+  ]
 
   return (
     <Card>
-      <CardContent className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+      <CardContent className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         {/* Summary Period */}
         <div>
-          <span className="text-sm font-medium text-muted-foreground">Summary</span>
+          <span className="text-sm font-medium text-muted-foreground">
+            {t('time_period_select.summary')}
+          </span>
           <ToggleGroup
             type="single"
             value={String(selectedDays)}
@@ -54,35 +51,29 @@ export function TimePeriodSelector({
                 data-[state=on]:text-white
                 data-[state=on]:border-primary
                 transition-colors">
-                {o.label}
+                {t('time_period_select.' + o.label) || o.label}
+
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
         </div>
-        {/* Trend Analysis Period */}
-        {/* <div className="sm:ml-auto mt-4 sm:mt-0">
-          <span className="text-sm font-medium text-muted-foreground">Trend</span>
-          <ToggleGroup
-            type="single"
-            value={String(trendDays)}
-            onValueChange={(v) => onTrendDaysChangeAction(Number(v))}
-            className="mt-2 space-x-1"
+
+        {/* Refresh Button */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground hidden sm:block">
+            {t('time_period_select.cache_info')}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-2"
           >
-            {trendOptions.map(o => (
-              <ToggleGroupItem key={o.value} value={String(o.value)} 
-              className="
-                rounded-full
-                px-3 py-1
-                border
-                data-[state=on]:bg-primary
-                data-[state=on]:text-white
-                data-[state=on]:border-primary
-                transition-colors">
-                {o.label}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-        </div> */}
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )

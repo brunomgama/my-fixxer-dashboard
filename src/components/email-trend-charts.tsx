@@ -8,13 +8,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { EmailStatusApi, EmailStatusResponse, EmailStatusTrendItem, EMAIL_HEALTH_THRESHOLDS } from "@/lib/api/email-status"
 import { useEnvironment } from "@/lib/context/environment"
 import { RippleWaveLoader } from "@/components/ripple-wave-loader"
+import { emailHealthCache } from "@/lib/cache/email-health-cache"
 
 interface EmailTrendChartsProps {
   selectedDays: number
   trendDays: number
+  forceRefresh?: boolean
+  onRefreshComplete?: () => void
 }
 
-export function EmailTrendCharts({ selectedDays, trendDays }: EmailTrendChartsProps) {
+export function EmailTrendCharts({ selectedDays, trendDays, forceRefresh = false, onRefreshComplete }: EmailTrendChartsProps) {
   const { env } = useEnvironment()
   const [data, setData] = useState<EmailStatusResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -28,6 +31,18 @@ export function EmailTrendCharts({ selectedDays, trendDays }: EmailTrendChartsPr
       setError(null)
       
       try {
+        // Check cache first unless force refresh is requested
+        if (!forceRefresh) {
+          const cachedData = emailHealthCache.getTrendData(env, selectedDays, trendDays)
+          if (cachedData) {
+            if (cancelled) return
+            setData(cachedData)
+            setLoading(false)
+            return
+          }
+        }
+
+        // Fetch fresh data
         const api = new EmailStatusApi(env)
         const result = await api.getStatus({
           category: 'global',
@@ -38,11 +53,18 @@ export function EmailTrendCharts({ selectedDays, trendDays }: EmailTrendChartsPr
         })
         
         if (cancelled) return
+        
+        // Cache the result
+        emailHealthCache.setTrendData(env, selectedDays, trendDays, result)
         setData(result)
+        
+        // Notify parent that refresh is complete
+        onRefreshComplete?.()
       } catch (err: any) {
         if (cancelled) return
         console.error('Failed to fetch email trends:', err)
         setError(err.message || 'Failed to fetch trend data')
+        onRefreshComplete?.()
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -50,7 +72,7 @@ export function EmailTrendCharts({ selectedDays, trendDays }: EmailTrendChartsPr
 
     fetchEmailTrends()
     return () => { cancelled = true }
-  }, [env, selectedDays, trendDays])
+  }, [env, selectedDays, trendDays, forceRefresh, onRefreshComplete])
 
   const formatTrendData = (trends?: EmailStatusTrendItem[]) => {
     if (!trends) return []

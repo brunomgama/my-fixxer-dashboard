@@ -9,12 +9,15 @@ import { EmailStatusApi, EmailStatusResponse, HealthStatus } from "@/lib/api/ema
 import { useEnvironment } from "@/lib/context/environment"
 import { useTranslation } from "@/lib/context/translation"
 import { RippleWaveLoader } from "@/components/ripple-wave-loader"
+import { emailHealthCache } from "@/lib/cache/email-health-cache"
 
 interface EmailHealthCardsProps {
   selectedDays: number
+  forceRefresh?: boolean
+  onRefreshComplete?: () => void
 }
 
-export function EmailHealthCards({ selectedDays }: EmailHealthCardsProps) {
+export function EmailHealthCards({ selectedDays, forceRefresh = false, onRefreshComplete }: EmailHealthCardsProps) {
   const { env } = useEnvironment()
   const { t } = useTranslation()
   const [data, setData] = useState<EmailStatusResponse | null>(null)
@@ -29,6 +32,18 @@ export function EmailHealthCards({ selectedDays }: EmailHealthCardsProps) {
       setError(null)
       
       try {
+        // Check cache first unless force refresh is requested
+        if (!forceRefresh) {
+          const cachedData = emailHealthCache.getHealthData(env, selectedDays)
+          if (cachedData) {
+            if (cancelled) return
+            setData(cachedData)
+            setLoading(false)
+            return
+          }
+        }
+
+        // Fetch fresh data
         const api = new EmailStatusApi(env)
         const result = await api.getStatus({
           category: 'global',
@@ -37,11 +52,18 @@ export function EmailHealthCards({ selectedDays }: EmailHealthCardsProps) {
         })
         
         if (cancelled) return
+        
+        // Cache the result
+        emailHealthCache.setHealthData(env, selectedDays, result)
         setData(result)
+        
+        // Notify parent that refresh is complete
+        onRefreshComplete?.()
       } catch (err: any) {
         if (cancelled) return
         console.error('Failed to fetch email status:', err)
         setError(err.message || 'Failed to fetch email health data')
+        onRefreshComplete?.()
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -49,7 +71,7 @@ export function EmailHealthCards({ selectedDays }: EmailHealthCardsProps) {
 
     fetchEmailStatus()
     return () => { cancelled = true }
-  }, [env, selectedDays])
+  }, [env, selectedDays, forceRefresh, onRefreshComplete])
 
   if (loading) {
     return (
@@ -70,7 +92,7 @@ export function EmailHealthCards({ selectedDays }: EmailHealthCardsProps) {
       <Card className="p-6">
         <div className="flex items-center gap-2 text-red-600">
           <XCircle className="h-5 w-5" />
-          <span>Error loading email health data: {error}</span>
+          <span>{t('email_health.errors.loading_failed').replace('{error}', error)}</span>
         </div>
       </Card>
     )
@@ -80,7 +102,7 @@ export function EmailHealthCards({ selectedDays }: EmailHealthCardsProps) {
     return (
       <Card className="p-6">
         <div className="text-center text-muted-foreground">
-          No email health data available
+          {t('email_health.errors.no_data')}
         </div>
       </Card>
     )
@@ -118,9 +140,9 @@ export function EmailHealthCards({ selectedDays }: EmailHealthCardsProps) {
 
   const getHealthLabel = (status: HealthStatus) => {
     switch (status) {
-      case 'healthy': return 'Healthy'
-      case 'warning': return 'Warning'
-      case 'danger': return 'At Risk'
+      case 'healthy': return t('email_health.status.healthy')
+      case 'warning': return t('email_health.status.warning')
+      case 'danger': return t('email_health.status.at_risk')
     }
   }
 
@@ -138,13 +160,13 @@ export function EmailHealthCards({ selectedDays }: EmailHealthCardsProps) {
       {/* Total Sent */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Sent</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('email_health.cards.total_sent')}</CardTitle>
           <Mail className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{formatNumber(data.sent)}</div>
           <p className="text-xs text-muted-foreground">
-            Last {selectedDays} days
+            {t('email_health.time_periods.last_days').replace('{days}', String(selectedDays))}
           </p>
         </CardContent>
       </Card>
@@ -152,13 +174,13 @@ export function EmailHealthCards({ selectedDays }: EmailHealthCardsProps) {
       {/* Total Bounces */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Bounces</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('email_health.cards.total_bounces')}</CardTitle>
           <MailX className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{formatNumber(data.bounces)}</div>
           <p className="text-xs text-muted-foreground">
-            {formatPercentage(data.bounce_rate)} of sent
+            {formatPercentage(data.bounce_rate)} {t('email_health.time_periods.of_sent')}
           </p>
         </CardContent>
       </Card>
@@ -166,13 +188,13 @@ export function EmailHealthCards({ selectedDays }: EmailHealthCardsProps) {
       {/* Total Complaints */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Complaints</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('email_health.cards.total_complaints')}</CardTitle>
           <AlertTriangle className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{formatNumber(data.complaints)}</div>
           <p className="text-xs text-muted-foreground">
-            {formatPercentage(data.complaint_rate)} of sent
+            {formatPercentage(data.complaint_rate)} {t('email_health.time_periods.of_sent')}
           </p>
         </CardContent>
       </Card>
@@ -180,7 +202,7 @@ export function EmailHealthCards({ selectedDays }: EmailHealthCardsProps) {
       {/* Bounce Rate */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Bounce Rate</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('email_health.cards.bounce_rate')}</CardTitle>
           <Badge variant="outline" className={getHealthColor(bounceHealth)}>
             {getHealthIcon(bounceHealth)}
             <span className="ml-1">{getHealthLabel(bounceHealth)}</span>
@@ -191,7 +213,7 @@ export function EmailHealthCards({ selectedDays }: EmailHealthCardsProps) {
             {formatPercentage(data.console_bounce_rate)}
           </div>
           <p className="text-xs text-muted-foreground">
-            Warning at 5%, Risk at 10%
+            {t('email_health.thresholds.bounce_warning')}
           </p>
         </CardContent>
       </Card>
@@ -199,7 +221,7 @@ export function EmailHealthCards({ selectedDays }: EmailHealthCardsProps) {
       {/* Complaint Rate */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Complaint Rate</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('email_health.cards.complaint_rate')}</CardTitle>
           <Badge variant="outline" className={getHealthColor(complaintHealth)}>
             {getHealthIcon(complaintHealth)}
             <span className="ml-1">{getHealthLabel(complaintHealth)}</span>
@@ -210,7 +232,7 @@ export function EmailHealthCards({ selectedDays }: EmailHealthCardsProps) {
             {formatPercentage(data.console_complaint_rate)}
           </div>
           <p className="text-xs text-muted-foreground">
-            Warning at 0.1%, Risk at 0.5%
+            {t('email_health.thresholds.complaint_warning')}
           </p>
         </CardContent>
       </Card>
@@ -218,7 +240,7 @@ export function EmailHealthCards({ selectedDays }: EmailHealthCardsProps) {
       {/* Overall Health Status */}
       <Card className={getHealthColor(overallHealth)}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Health Status</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('email_health.cards.health_status')}</CardTitle>
           <Shield className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>

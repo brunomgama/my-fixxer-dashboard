@@ -41,7 +41,8 @@
     "sendProcess": "Send Process",
     "senders": "Senders",
     "templates": "Templates",
-    "unsubscribe": "Unsubscribe"
+    "unsubscribe": "Unsubscribe",
+    "events_emails": "Email Events"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -405,5 +406,49 @@
     },
     "recipientPlural": "Recipients",
     "variablePlural": "Variables"
+  },
+  "home_dashboard": {
+    "title": "Email Health Dashboard",
+    "description": "Monitor your email delivery performance and maintain optimal sender reputation"
+  },
+  "time_period_select": {
+    "summary": "Summary",
+    "7days": "7 days",
+    "14days": "14 days",
+    "30days": "30 days",
+    "60days": "60 days",
+    "90days": "90 days",
+    "cache_info": "Data cached for 24h",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing..."
+  },
+  "email_health": {
+    "title": "Email Health Dashboard",
+    "description": "Monitor your email delivery performance and maintain optimal sender reputation",
+    "cards": {
+      "total_sent": "Total Sent",
+      "total_bounces": "Total Bounces",
+      "total_complaints": "Total Complaints",
+      "bounce_rate": "Bounce Rate",
+      "complaint_rate": "Complaint Rate",
+      "health_status": "Health Status"
+    },
+    "status": {
+      "healthy": "Healthy",
+      "warning": "Warning", 
+      "at_risk": "At Risk"
+    },
+    "thresholds": {
+      "bounce_warning": "Warning at 5%, Risk at 10%",
+      "complaint_warning": "Warning at 0.1%, Risk at 0.5%"
+    },
+    "time_periods": {
+      "last_days": "Last {days} days",
+      "of_sent": "of sent"
+    },
+    "errors": {
+      "loading_failed": "Error loading email health data: {error}",
+      "no_data": "No email health data available"
+    }
   }
 }

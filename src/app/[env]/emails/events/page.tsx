@@ -3,14 +3,7 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { EventsEmailsApi } from '@/lib/api/events-emails'
 import type { EmailEvent } from '@/lib/types/events-emails'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import {Table,TableBody,TableCell,TableHead,TableHeader,TableRow} from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
@@ -19,30 +12,11 @@ import { RippleWaveLoader } from '@/components/ripple-wave-loader'
 import { ChevronLeft, ChevronRight, AlertCircle, Database, Filter, BarChart3, TableIcon, Mail, MousePointer, AlertTriangle, Send } from 'lucide-react'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Input } from '@/components/ui/input'
-import { 
-  ChartContainer, 
-  ChartTooltip, 
-  ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
-  type ChartConfig 
-} from '@/components/ui/chart'
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  ResponsiveContainer,
-  PieChart as RechartsPieChart,
-  Cell,
-  Pie,
-  LineChart,
-  Line,
-  AreaChart,
-  Area
-} from 'recharts'
+import { ChartContainer, ChartTooltip, ChartLegend,ChartLegendContent,type ChartConfig } from '@/components/ui/chart'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, AreaChart,Area} from 'recharts'
 
+// TODO: Should i remove this? we only have events on production
+// TODO: The bucket and the athena table are hardcoded for now, should we make them configurable?
 const api = new EventsEmailsApi("production")
 
 const EVENT_TYPE_COLORS: Record<string, string> = {
@@ -57,7 +31,6 @@ const EVENT_TYPE_COLORS: Record<string, string> = {
   Default:     'bg-gray-100 text-gray-700 border-gray-200'
 }
 
-// List all possible fields (from Athena schema)
 const EMAIL_EVENT_FIELDS: { key: keyof EmailEvent, label: string }[] = [
   { key: 'event_type', label: 'Event Type' },
   { key: 'send_time', label: 'Send Time' },
@@ -233,10 +206,8 @@ export default function EmailEventsPage() {
         setEvents([])
       })
       .finally(() => setLoading(false))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cursor, pageSize])
 
-  // Fetch analytics data when switching to charts view or when filter changes
   useEffect(() => {
     if (viewMode === 'charts') {
       setLoadingAllData(true)
@@ -259,7 +230,6 @@ export default function EmailEventsPage() {
     }
   }, [viewMode, filterType, filterValue])
 
-  // Calculate email metrics
   const emailMetrics = useMemo((): EmailMetrics => {
     if (allEvents.length === 0) {
       return {
@@ -294,7 +264,6 @@ export default function EmailEventsPage() {
     }
   }, [allEvents])
 
-  // Calculate optimal open times (24h view)
   const optimalOpenTimes = useMemo((): OptimalTimeData[] => {
     const hourlyData = Array.from({ length: 24 }, (_, hour) => ({
       hour,
@@ -320,9 +289,7 @@ export default function EmailEventsPage() {
     }))
   }, [allEvents])
 
-  // Calculate engagement by locale
   const localeEngagement = useMemo((): LocaleEngagement[] => {
-    // Group events by message_id and locale to avoid double counting
     const messagesByLocale: Record<string, Set<string>> = {}
     const localeData: Record<string, { sends: number, opens: number, clicks: number, uniqueMessages: Set<string> }> = {}
 
@@ -337,26 +304,22 @@ export default function EmailEventsPage() {
         messagesByLocale[locale] = new Set()
       }
 
-      // Track unique messages per locale to avoid counting duplicates
       localeData[locale].uniqueMessages.add(messageId)
 
       switch (event.event_type) {
         case 'Send':
-          // Only count each message once per locale for sends
           if (!messagesByLocale[locale].has(`send-${messageId}`)) {
             localeData[locale].sends++
             messagesByLocale[locale].add(`send-${messageId}`)
           }
           break
         case 'Open':
-          // Only count each message once per locale for opens
           if (!messagesByLocale[locale].has(`open-${messageId}`)) {
             localeData[locale].opens++
             messagesByLocale[locale].add(`open-${messageId}`)
           }
           break
         case 'Click':
-          // Only count each message once per locale for clicks
           if (!messagesByLocale[locale].has(`click-${messageId}`)) {
             localeData[locale].clicks++
             messagesByLocale[locale].add(`click-${messageId}`)
@@ -371,15 +334,13 @@ export default function EmailEventsPage() {
         sends: data.sends,
         opens: data.opens,
         clicks: data.clicks,
-        // Engagement rate: (opens / sends) * 100, since clicks are a subset of opens
         engagement: data.sends > 0 ? (data.opens / data.sends) * 100 : 0
       }))
-      .filter(item => item.sends > 0) // Only show locales with actual sends
+      .filter(item => item.sends > 0)
       .sort((a, b) => b.engagement - a.engagement)
-      .slice(0, 10) // Top 10 locales
+      .slice(0, 10)
   }, [allEvents])
 
-  // Calculate 30-day trends
   const trendData = useMemo((): TrendData[] => {
     const dailyData: Record<string, { sends: number, opens: number, clicks: number, bounces: number }> = {}
 
@@ -410,7 +371,7 @@ export default function EmailEventsPage() {
     return Object.entries(dailyData)
       .map(([date, data]) => ({ date, ...data }))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(-30) // Last 30 days
+      .slice(-30)
   }, [allEvents])
 
   const chartConfig: ChartConfig = {
@@ -438,7 +399,6 @@ export default function EmailEventsPage() {
   }
 
   const handleFilterApply = () => {
-    // Trigger data refetch by changing state
     if (viewMode === 'charts') {
       setLoadingAllData(true)
       const filter = filterType !== 'all' && filterValue.trim() ? 

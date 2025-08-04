@@ -41,7 +41,8 @@
     "sendProcess": "Processus d'envoi",
     "senders": "Expéditeurs",
     "templates": "Modèles",
-    "unsubscribe": "Désabonnement"
+    "unsubscribe": "Désabonnement",
+    "events_emails": "Événements d'e-mail"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -402,6 +403,50 @@
       "october": "Octobre",
       "november": "Novembre",
       "december": "Décembre"
+    }
+  },
+  "home_dashboard": {
+    "title": "Tableau de bord de la santé des e-mails",
+    "description": "Surveillez la performance de livraison de vos e-mails et maintenez une réputation d’expéditeur optimale"
+  },
+  "time_period_select": {
+    "summary": "Résumé",
+    "7days": "7 jours",
+    "14days": "14 jours",
+    "30days": "30 jours",
+    "60days": "60 jours",
+    "90days": "90 jours",
+    "cache_info": "Données mises en cache pendant 24h",
+    "refresh": "Actualiser",
+    "refreshing": "Actualisation..."
+  },
+  "email_health": {
+    "title": "Tableau de bord de la santé des e-mails",
+    "description": "Surveillez la performance de livraison de vos e-mails et maintenez une réputation d'expéditeur optimale",
+    "cards": {
+      "total_sent": "Total envoyé",
+      "total_bounces": "Total des rebonds",
+      "total_complaints": "Total des plaintes",
+      "bounce_rate": "Taux de rebond",
+      "complaint_rate": "Taux de plainte",
+      "health_status": "État de santé"
+    },
+    "status": {
+      "healthy": "Sain",
+      "warning": "Avertissement",
+      "at_risk": "À risque"
+    },
+    "thresholds": {
+      "bounce_warning": "Avertissement à 5%, Risque à 10%",
+      "complaint_warning": "Avertissement à 0,1%, Risque à 0,5%"
+    },
+    "time_periods": {
+      "last_days": "Derniers {days} jours",
+      "of_sent": "des envoyés"
+    },
+    "errors": {
+      "loading_failed": "Erreur lors du chargement des données de santé des e-mails : {error}",
+      "no_data": "Aucune donnée de santé des e-mails disponible"
     }
   }
 }
