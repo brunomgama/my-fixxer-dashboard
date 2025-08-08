@@ -9,7 +9,8 @@ import {
     Clock,
     UserMinus,
     Send,
-    Shredder} from "lucide-react";
+    Shredder,
+    Settings} from "lucide-react";
   
   type SidebarLinkItem = {
     label: string;
@@ -75,6 +76,12 @@ import {
       label: "navigation.events_emails",
       href: "/emails/events",
       icon: Shredder,
+    },
+    { divider: true },
+    {
+      label: "navigation.settings",
+      href: "/emails/settings",
+      icon: Settings,
     },
     { divider: true },
     {

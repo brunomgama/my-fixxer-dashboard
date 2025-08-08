@@ -42,7 +42,8 @@
     "senders": "Expéditeurs",
     "templates": "Modèles",
     "unsubscribe": "Désabonnement",
-    "events_emails": "Événements d'e-mail"
+    "events_emails": "Événements d'e-mail",
+    "settings": "Paramètres"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -447,6 +448,66 @@
     "errors": {
       "loading_failed": "Erreur lors du chargement des données de santé des e-mails : {error}",
       "no_data": "Aucune donnée de santé des e-mails disponible"
+    }
+  },
+  "settings": {
+    "title": "Paramètres du Système Email",
+    "description": "Configurer les paramètres système pour la livraison d'emails et la gestion des taux de plainte.",
+    "value": "Valeur",
+    "currentValue": "Valeur Actuelle",
+    "default": "Par défaut",
+    "modified": "Modifié",
+    "reset": "Réinitialiser",
+    "timeEquivalent": "Équivalent temps",
+    "min": "Min",
+    "max": "Max",
+    "important": "Important",
+    "importantMessage": "Les modifications de ces paramètres affecteront l'ensemble du système de livraison d'emails. Les taux de plainte sont utilisés pour automatiquement suspendre l'envoi d'emails lorsque les seuils sont dépassés pour protéger la réputation de l'expéditeur. Les paramètres de batch contrôlent comment les emails sont distribués dans le temps pour gérer la charge système.",
+    "failedToLoad": "Échec du chargement des paramètres",
+    "settingUpdated": "{setting} mis à jour avec succès",
+    "failedToUpdate": "Échec de la mise à jour de {setting}",
+    "valueRequired": "La valeur est requise",
+    "valueMustBeNumber": "La valeur doit être un nombre",
+    "valueMustBeAtLeast": "La valeur doit être au moins {min}",
+    "valueMustBeAtMost": "La valeur doit être au maximum {max}",
+    "units": {
+      "minutes": "minutes",
+      "recipients": "destinataires"
+    },
+    "plural": {
+      "minute_one": "{{count}} minute",
+      "minute_other": "{{count}} minutes",
+      "hour_one": "{{count}} hour",
+      "hour_other": "{{count}} hours",
+      "day_one": "{{count}} day",
+      "day_other": "{{count}} days"
+    },
+    "timeFormat": {
+      "days": "{count} jour{count, plural, one {} other {s}}",
+      "hours": "{count} heure{count, plural, one {} other {s}}",
+      "minutes": "{count} minute{count, plural, one {} other {s}}",
+      "daysAndHours": "{days} jour{days, plural, one {} other {s}} {hours}h",
+      "hoursAndMinutes": "{hours}h {minutes}m"
+    },
+    "dailyComplaintRate": {
+      "label": "Taux de Plainte Quotidien",
+      "description": "Maximum autorisé pour le taux de plainte quotidien pour envoyer des emails"
+    },
+    "monthComplaintRate": {
+      "label": "Taux de Plainte Mensuel", 
+      "description": "Maximum autorisé pour le taux de plainte mensuel pour envoyer des emails"
+    },
+    "visibilityTime": {
+      "label": "Temps de Visibilité",
+      "description": "Combien de temps (en minutes) l'utilisateur doit attendre jusqu'à ce que nous renvoyions automatiquement si l'email n'est pas envoyé à cause de taux de plainte élevés"
+    },
+    "maxBatch": {
+      "label": "Taille Maximum de Batch",
+      "description": "Nombre maximum de destinataires par batch. Si nous avons plus que ce nombre, les emails seront envoyés en batches"
+    },
+    "retryRate": {
+      "label": "Taux de Retry",
+      "description": "Temps d'attente entre les batches (en minutes)"
     }
   }
 }

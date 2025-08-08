@@ -42,7 +42,8 @@
     "senders": "Verzenders",
     "templates": "Templates",
     "unsubscribe": "Uitschrijven",
-    "events_emails": "E-mailgezondheid"
+    "events_emails": "E-mailgezondheid",
+    "settings": "Instellingen"
   },
   "dashboard": {
     "title": "Dashboard",

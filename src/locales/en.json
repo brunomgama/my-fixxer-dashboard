@@ -42,7 +42,8 @@
     "senders": "Senders",
     "templates": "Templates",
     "unsubscribe": "Unsubscribe",
-    "events_emails": "Email Events"
+    "events_emails": "Email Events",
+    "settings": "Settings"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -449,6 +450,62 @@
     "errors": {
       "loading_failed": "Error loading email health data: {error}",
       "no_data": "No email health data available"
+    }
+  },
+  "settings": {
+    "title": "Email System Settings",
+    "description": "Configure system-wide settings for email delivery and complaint rate management.",
+    "value": "Value",
+    "currentValue": "Current Value",
+    "default": "Default",
+    "modified": "Modified",
+    "reset": "Reset",
+    "timeEquivalent": "Time equivalent",
+    "min": "Min",
+    "max": "Max",
+    "important": "Important",
+    "importantMessage": "Changes to these settings will affect the entire email delivery system. Complaint rates are used to automatically pause email sending when thresholds are exceeded to protect sender reputation. Batch settings control how emails are distributed over time to manage system load.",
+    "initializeDefaults": "Initialize Defaults",
+    "allSettingsExist": "All settings already exist in the database",
+    "initializedSettings": "Successfully initialized {count} setting{count, plural, one {} other {s}} with default values",
+    "failedToInitialize": "Failed to initialize {count} setting{count, plural, one {} other {s}}",
+    "failedToLoad": "Failed to load settings",
+    "settingUpdated": "Setting updated successfully",
+    "failedToUpdate": "Failed to update {setting}",
+    "valueRequired": "Value is required",
+    "valueMustBeNumber": "Value must be a number",
+    "valueMustBeAtLeast": "Value must be at least {min}",
+    "valueMustBeAtMost": "Value must be at most {max}",
+    "units": {
+      "minutes": "minutes",
+      "recipients": "recipients"
+    },
+    "timeFormat": {
+      "days": "{count} day{count, plural, one {} other {s}}",
+      "hours": "{count} hour{count, plural, one {} other {s}}",
+      "minutes": "{count} minute{count, plural, one {} other {s}}",
+      "daysAndHours": "{days} day{days, plural, one {} other {s}} {hours}h",
+      "hoursAndMinutes": "{hours}h {minutes}m"
+    },
+    "dailyComplaintRate": {
+      "label": "Daily Complaint Rate",
+      "description": "Max allowed for the daily complaint rate to send emails"
+    },
+    "monthComplaintRate": {
+      "label": "Monthly Complaint Rate", 
+      "description": "Max allowed for the monthly complaint rate to send emails"
+    },
+    "visibilityTime": {
+      "label": "Visibility Time",
+      "description": "How long (in minutes) the user has to wait until we automatically send again if email is not sent due to high complaint rates"
+    },
+    "maxBatch": {
+      "label": "Max Batch Size",
+      "description": "Max amount of recipients per batch. If we have more than this amount, emails will be sent in batches"
+    },
+    "retryRate": {
+      "label": "Retry Rate",
+      "description": "Amount of time to wait between batches (in minutes)"
     }
   }
 }
