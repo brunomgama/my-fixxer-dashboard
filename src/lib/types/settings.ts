@@ -68,5 +68,21 @@ export const SETTINGS_CONFIG: SettingConfig[] = [
     unit: 'minutes',
     type: 'number',
     min: 1
-  }
+  },
+  {
+    id: 'maxAllowedAllarms',
+    label: 'Max Allowed Alarms',
+    description: 'Max amount of alarms to trigger before stopping the campaign',
+    defaultValue: '5',
+    type: 'number',
+    min: 1
+  },
+  // {
+  //   id: 'alarmCount-2025-08-08',
+  //   label: 'Alarm Count - 2025-08-08',
+  //   description: 'Number of alarms triggered on 2025-08-08',
+  //   defaultValue: '0',
+  //   type: 'number',
+  //   min: 1
+  // },
 ]

@@ -84,6 +84,6 @@ import {
     async duplicate(id: string): Promise<Campaign> {
       return this.request(`/campaign/${id}`, {
         method: "POST",
-      })
+        body: JSON.stringify({})})
     }
   }

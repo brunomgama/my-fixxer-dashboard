@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -14,7 +14,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -58,12 +57,41 @@ const staggerVariants = {
   open: { transition: { staggerChildren: 0.03, delayChildren: 0.02 } },
 };
 
+const getBadgeColorClasses = (color?: string) => {
+  switch (color) {
+    case "red":
+      return "border-none bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400";
+    case "orange":
+      return "border-none bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400";
+    case "green":
+      return "border-none bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400";
+    case "purple":
+      return "border-none bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400";
+    case "blue":
+      return "border-none bg-blue-50 text-blue-600 dark:bg-blue-700 dark:text-blue-300";
+    default:
+      return "border-none bg-blue-50 text-blue-600 dark:bg-blue-700 dark:text-blue-300";
+  }
+};
+
+const isEnvironmentBlocked = (block?: string, currentEnv?: string) => {
+  if (!block || !currentEnv) return false;
+  const blockedEnvs = block.split(',').map(env => env.trim());
+  return blockedEnvs.includes(currentEnv);
+};
+
 export function SessionNavBar() {
   const {t} = useTranslation()
   const { env, setEnv } = useEnvironment();
   
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false);
   const pathname = usePathname();
+
+  // Ensure hydration consistency
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   return (
     <motion.div
@@ -90,7 +118,7 @@ export function SessionNavBar() {
                     className="flex w-full items-center justify-between gap-2 px-2"
                   >
                     <Avatar className="rounded size-4">
-                      <AvatarFallback>{env[0].toUpperCase()}</AvatarFallback>
+                      <AvatarFallback>{env?.[0]?.toUpperCase() || 'L'}</AvatarFallback>
                     </Avatar>
                     <motion.div variants={variants}>
                       {!isCollapsed && (
@@ -98,7 +126,7 @@ export function SessionNavBar() {
                           variants={variants}
                           className="flex items-center justify-between w-full"
                         >
-                          <p className="text-sm font-medium capitalize mr-2">{env}</p>
+                          <p className="text-sm font-medium capitalize mr-2">{env || 'local'}</p>
                           <ChevronsUpDown className="h-4 w-4 text-muted-foreground/50" />
                         </motion.div>
                       )}
@@ -106,9 +134,9 @@ export function SessionNavBar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-[calc(100%-1rem)] ml-2">
-                  {environments.map((env) => (
-                    <DropdownMenuItem key={env.key} onClick={() => setEnv(env.key)}>
-                      {t(env.label)}
+                  {environments.map((envItem) => (
+                    <DropdownMenuItem key={envItem.key} onClick={() => setEnv(envItem.key)}>
+                      {t(envItem.label)}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
@@ -125,9 +153,47 @@ export function SessionNavBar() {
                     return <Separator key={`sep-${i}`} className="w-full" />;
                   }
 
-                  const fullHref = `/${env}${item.href}`;
-                  const isActive = pathname === fullHref
+                  const fullHref = `/${env || 'local'}${item.href}`;
+                  const isActive = pathname === fullHref;
+                  // Only check blocking after hydration to prevent mismatch
+                  const isBlocked = isHydrated && isEnvironmentBlocked(item.block, env);
                   const Icon = item.icon;
+
+                  const linkContent = (
+                    <>
+                      <Icon className="h-4 w-4" />
+                      <motion.li variants={variants}>
+                        {!isCollapsed && (
+                          <div className="ml-2 flex items-center gap-2">
+                            <p className="text-sm font-medium">{t(item.label)}</p>
+                            {item.badge && (
+                              <Badge
+                                variant="outline"
+                                className={getBadgeColorClasses(item.badgeColor)}
+                              >
+                                {item.badge}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                      </motion.li>
+                    </>
+                  );
+
+                  if (isBlocked) {
+                    return (
+                      <div
+                        key={item.href}
+                        className={cn(
+                          "flex h-8 w-full flex-row items-center rounded-md px-2 py-1.5 opacity-50 cursor-not-allowed",
+                          "text-muted-foreground"
+                        )}
+                        title={`This feature is not available in ${env} environment`}
+                      >
+                        {linkContent}
+                      </div>
+                    );
+                  }
 
                   return (
                     <Link
@@ -138,22 +204,7 @@ export function SessionNavBar() {
                         isActive && "bg-muted text-blue-600"
                       )}
                     >
-                      <Icon className="h-4 w-4" />
-                      <motion.li variants={variants}>
-                        {!isCollapsed && (
-                          <div className="ml-2 flex items-center gap-2">
-                            <p className="text-sm font-medium">{t(item.label)}</p>
-                            {item.badge && (
-                              <Badge
-                                variant="outline"
-                                className="border-none bg-blue-50 px-1.5 text-blue-600 dark:bg-blue-700 dark:text-blue-300"
-                              >
-                                {item.badge}
-                              </Badge>
-                            )}
-                          </div>
-                        )}
-                      </motion.li>
+                      {linkContent}
                     </Link>
                   );
                 })}
@@ -163,14 +214,12 @@ export function SessionNavBar() {
               {/* FOOTER */}
               <div className="flex flex-col p-2 mt-auto gap-2">
 
-
                 <div className="flex h-8 w-full flex-row items-center rounded-md px-2 py-1.5 transition hover:bg-muted hover:text-primary">
                   <Globe className="h-4 w-4 shrink-0" />
                   <motion.li variants={variants}>
                     <LanguageSwitcher isCollapsed={isCollapsed} />
                   </motion.li>
                 </div>
-
 
                 <Link
                   href="/settings/profile"

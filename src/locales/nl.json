@@ -32,7 +32,10 @@
     "home": "Home",
     "sendEmail": "E-mail verzenden",
     "dashboard": "Dashboard",
-    "workflows": "Workflows",
+    "workflows":{
+      "events": "Workflow Events",
+      "actions": "Workflow Actions"
+    },
     "emails": "E-mails",
     "audience": "Doelgroep",
     "audienceTypes": "Doelgroepsoorten",

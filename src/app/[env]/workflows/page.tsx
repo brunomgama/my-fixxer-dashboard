@@ -40,7 +40,7 @@ export default function WorkflowPage() {
 
   useEffect(() => {
     fetchData()
-  }, [fetchData])
+  }, [])
   
 
   const handleConfirmDelete = async () => {

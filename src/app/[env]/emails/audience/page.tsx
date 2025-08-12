@@ -32,6 +32,8 @@ export default function AudiencePage() {
   const [isDeleting, setIsDeleting] = useState(false)
 
   const fetchAudiences = useCallback(async () => {
+    setLoading(true)
+    setError(null)
     try {
       const result = await api.list({ limit: 50 })
       setData(result.results)
@@ -43,8 +45,9 @@ export default function AudiencePage() {
   }, [api, t])
 
   useEffect(() => {
+    setLoading(true)
     fetchAudiences()
-  }, [fetchAudiences])
+  }, [fetchAudiences, env])
 
   const handleConfirmDelete = async () => {
     if (!selectedId) return

@@ -106,7 +106,7 @@ export default function SchedulePage() {
     setSelectedSchedule(schedule)
     setFormData({
       campaignId: schedule.campaignId,
-      emailReceiver: schedule.emailReceiver.join(', '),
+      emailReceiver: schedule.emailReceiver?.join(', ') || '',
       scheduled_time: schedule.scheduled_time,
       variables: JSON.stringify(schedule.variables, null, 2)
     })
@@ -441,7 +441,7 @@ export default function SchedulePage() {
             <div className="space-y-4">
               {/* Campaign Selection */}
               <div>
-                <Label htmlFor="campaign">{t('schedules.campaign')} *</Label>
+                <Label htmlFor="campaign" className="mb-2">{t('schedules.campaign')} *</Label>
                 <Select 
                   value={formData.campaignId} 
                   onValueChange={(value) => setFormData(prev => ({ ...prev, campaignId: value }))}
@@ -462,7 +462,7 @@ export default function SchedulePage() {
 
               {/* Scheduled Time */}
               <div>
-                <Label htmlFor="scheduled_time">{t('schedules.scheduledTime')} *</Label>
+                <Label htmlFor="scheduled_time" className="mb-2">{t('schedules.scheduledTime')} *</Label>
                 <Input
                   id="scheduled_time"
                   type="datetime-local"
@@ -477,7 +477,7 @@ export default function SchedulePage() {
 
               {/* Email Recipients */}
               <div>
-                <Label htmlFor="emailReceiver">{t('schedules.emailRecipients')}</Label>
+                <Label htmlFor="emailReceiver" className="mb-2">{t('schedules.emailRecipients')}</Label>
                 <Textarea
                   id="emailReceiver"
                   value={formData.emailReceiver}
@@ -493,7 +493,7 @@ export default function SchedulePage() {
 
               {/* Variables */}
               <div>
-                <Label htmlFor="variables">{t('schedules.variables')} (JSON)</Label>
+                <Label htmlFor="variables" className="mb-2">{t('schedules.variables')} (JSON)</Label>
                 <Textarea
                   id="variables"
                   value={formData.variables}

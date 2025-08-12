@@ -3,7 +3,7 @@ export interface Template {
     name: string
     local: string
     audienceTypeId: string
-    emailType: 'campaign' | 'automation' | 'functional'
+    emailType: string[]
     header: string
     footer: string
     unsubscribe?: string
@@ -30,7 +30,7 @@ export interface CreateTemplateRequest {
     name: string
     local: string
     audienceTypeId: string
-    emailType: 'campaign' | 'automation' | 'functional'
+    emailType: string[]
     header: string
     footer: string
     unsubscribe?: string

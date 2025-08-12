@@ -100,6 +100,19 @@ export default function TemplatePage() {
     }
   }
 
+  const getEmailTypeBadgeStyle = (type: string) => {
+    switch (type) {
+      case "functional":
+        return "bg-purple-100 text-purple-700"
+      case "automation":
+        return "bg-blue-100 text-blue-700"
+      case "campaign":
+        return "bg-yellow-100 text-yellow-800"
+      default:
+        return "bg-gray-100 text-gray-700"
+    }
+  }
+
   if (loading) return <RippleWaveLoader />
   if (error) return <p className="p-4 text-destructive">{error}</p>
 
@@ -146,7 +159,22 @@ export default function TemplatePage() {
                     {template.local}
                   </TableCell>
 
-                  <TableCell className="capitalize">{t(`senders.${template.emailType}`)}</TableCell>
+                  <TableCell>
+                    {template.emailType?.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {template.emailType.map((type: string) => (
+                          <Badge
+                            key={type}
+                            className={getEmailTypeBadgeStyle(type)}
+                          >
+                            {t(`templates.${type}`)}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground italic">{t("senders.none")}</span>
+                    )}
+                  </TableCell>
 
                   <TableCell>
                     {getStatusBadge(template.status)}

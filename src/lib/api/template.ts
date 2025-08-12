@@ -82,8 +82,7 @@ import {
     }
 
     async duplicate(id: string): Promise<Template> {
-      return this.request(`/template/${id}`, {
-        method: "POST",
-      })
+      return this.request(`/template/${id}`, { method: "POST" ,
+        body: JSON.stringify({})})
     }
   }

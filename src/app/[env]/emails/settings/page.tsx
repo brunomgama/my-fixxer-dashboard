@@ -36,6 +36,7 @@ export default function SettingsPage() {
 
   // Guard: fetch once per mount
   const fetchedOnce = useRef(false)
+  const lastEnv = useRef<string>(env)
 
   // Helpers
   const toMap = (arr: Setting[]) =>
@@ -54,26 +55,6 @@ export default function SettingsPage() {
 
   const tt = (key: string, params?: Record<string, string | number>) =>
     (t as unknown as (k: string, p?: any) => string)(key, params)
-
-  const formatTime = (minutes: string) => {
-    const mins = parseInt(minutes, 10)
-    if (Number.isNaN(mins)) return minutes
-    if (mins >= 1440) {
-      const days = Math.floor(mins / 1440)
-      const hours = Math.floor((mins % 1440) / 60)
-      return hours === 0
-        ? tt("settings.timeFormat.days", { count: days })
-        : tt("settings.timeFormat.daysAndHours", { days, hours })
-    }
-    if (mins >= 60) {
-      const hours = Math.floor(mins / 60)
-      const rem = mins % 60
-      return rem === 0
-        ? tt("settings.timeFormat.hours", { count: hours })
-        : tt("settings.timeFormat.hoursAndMinutes", { hours, minutes: rem })
-    }
-    return tt("settings.timeFormat.minutes", { count: mins })
-  }
 
   const load = async () => {
     setLoading(true)
@@ -104,8 +85,21 @@ export default function SettingsPage() {
   }
 
   useEffect(() => {
-    if (fetchedOnce.current) return
+    const envChanged = lastEnv.current !== env
+    
+    if (fetchedOnce.current && !envChanged) return
+    
     fetchedOnce.current = true
+    lastEnv.current = env
+    
+    if (envChanged) {
+      setFormData({})
+      setBaseline({})
+      setPresentIds(new Set())
+      setErrors({})
+      setSavingId(null)
+    }
+    
     let cleanup: any
     ;(async () => {
       cleanup = await load()
@@ -113,7 +107,7 @@ export default function SettingsPage() {
     return () => {
       if (cleanup) cleanup()
     }
-  }, [api])
+  }, [api, env])
 
   const validate = (cfg: SettingConfig, raw: string): string | null => {
     const value = raw?.toString().trim()
@@ -136,6 +130,12 @@ export default function SettingsPage() {
   const onChange = (id: string, value: string) => {
     setFormData(prev => ({ ...prev, [id]: value }))
     if (errors[id]) setErrors(prev => ({ ...prev, [id]: "" }))
+  }
+
+  const onRefresh = () => {
+    fetchedOnce.current = false
+    lastEnv.current = env
+    load()
   }
 
   const onResetOne = (cfg: SettingConfig) => {
@@ -179,7 +179,7 @@ export default function SettingsPage() {
 
     for (const cfg of missingSettings) {
       try {
-        await api.create(cfg.id, { value: cfg.defaultValue })
+        await api.create({ id: cfg.id, value: cfg.defaultValue })
         setPresentIds(prev => new Set(prev).add(cfg.id))
         setBaseline(prev => ({ ...prev, [cfg.id]: cfg.defaultValue }))
         successCount++
@@ -257,12 +257,10 @@ export default function SettingsPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              fetchedOnce.current = true
-              load()
-            }}
+            onClick={onRefresh}
+            disabled={loading}
           >
-            <RotateCw className="mr-2 h-4 w-4" />
+            <RotateCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             {t("common.refresh")}
           </Button>
         </div>

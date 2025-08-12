@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { CampaignApi } from "@/lib/api/campaign"
 import { AudienceApi } from "@/lib/api/audience"
@@ -45,7 +45,6 @@ export default function CreateCampaignPage() {
   const [subject, setSubject] = useState("")
   const [content, setContent] = useState("")
   const [templateId, setTemplateId] = useState("")
-  const [status, setStatus] = useState<"draft" | "planned" | "archived" | "sending" | "sent">("draft")
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -66,12 +65,12 @@ export default function CreateCampaignPage() {
         setAudiences(audienceResult.results)
         setSenders(senderResult.results)
         setTemplates(templateResult.results)
-      } catch {
+      } catch (error) {
         showToast(t("common.error"), t("campaigns.failedToLoadData"), "error")
       }
     }
     fetchData()
-  }, [audienceApi, senderApi, templateApi, showToast, t])
+  }, [audienceApi, senderApi, templateApi])
 
   useEffect(() => {
     if (senderId) {

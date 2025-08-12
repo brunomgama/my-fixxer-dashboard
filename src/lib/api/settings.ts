@@ -24,38 +24,44 @@ export class SettingsApi {
         ...options.headers,
       },
     })
-
+  
     if (!res.ok) {
       const message = await res.text()
       throw new Error(`HTTP ${res.status}: ${message}`)
     }
-
+  
     const contentType = res.headers.get("content-type") || ""
     const contentLength = res.headers.get("content-length")
-
+  
     if (!contentLength || contentLength === "0") {
       return undefined as T
     }
-
+  
     if (contentType.includes("application/json")) {
       return res.json()
     }
-
+  
     return undefined as T
   }
 
   async list(): Promise<SettingsListResponse> {
     return this.request(`/settings`)
   }
-
-  async create(id: string, data: UpdateSettingRequest): Promise<Setting> {
-    return this.request(`/settings/${id}`, {
+    
+  async getOne(id: string): Promise<Setting> {
+    return this.request(`/settings/${id}`)
+  }
+    
+  async create(data: Setting): Promise<Setting> {
+    console.log("Creating setting with data:", data)
+        
+    return this.request(`/settings`, {
       method: "POST",
       body: JSON.stringify(data),
     })
   }
-
-  async update(id: string, data: UpdateSettingRequest): Promise<Setting> {
+    
+  async update(id: string, data: Setting): Promise<Setting> {
     return this.request(`/settings/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),

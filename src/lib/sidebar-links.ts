@@ -10,13 +10,16 @@ import {
     UserMinus,
     Send,
     Shredder,
-    Settings} from "lucide-react";
+    Settings,
+    Waypoints} from "lucide-react";
   
   type SidebarLinkItem = {
     label: string;
     href: string;
     icon: LucideIcon;
     badge?: string;
+    badgeColor?: "default" | "red" | "orange" | "blue" | "green" | "purple";
+    block?: string;
   };
   
   type SidebarLinkDivider = {
@@ -76,6 +79,9 @@ import {
       label: "navigation.events_emails",
       href: "/emails/events",
       icon: Shredder,
+      badge: "PROD ONLY",
+      badgeColor: "red",
+      block: "local,development,staging",
     },
     { divider: true },
     {
@@ -85,9 +91,15 @@ import {
     },
     { divider: true },
     {
-      label: "navigation.workflows",
+      label: "navigation.workflows.events",
       href: "/workflows",
       icon: Layout,
+      badge: "BETA",
+    },
+    {
+      label: "navigation.workflows.actions",
+      href: "/workflow",
+      icon: Waypoints,
       badge: "BETA",
     },
     { divider: true },

@@ -32,7 +32,10 @@
     "home": "Accueil",
     "sendEmail": "Envoyer un e-mail",
     "dashboard": "Tableau de bord",
-    "workflows": "Workflows",
+    "workflows":{
+      "events": "Workflow Events",
+      "actions": "Workflow Actions"
+    },
     "emails": "E-mails",
     "audience": "Audience",
     "audienceTypes": "Types d'audience",

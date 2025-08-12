@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { CampaignApi } from "@/lib/api/campaign"
 import { AudienceApi } from "@/lib/api/audience"
@@ -105,7 +105,7 @@ export default function EditCampaignPage() {
     }
   
     fetchInitialData()
-  }, [api, audienceApi, senderApi, templateApi, id, router, showToast, t])
+  }, [api, audienceApi, senderApi, templateApi])
 
   // Update sender alias options when sender changes
   useEffect(() => {
